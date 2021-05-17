@@ -19,8 +19,6 @@ public class User {
     private String birthday;
     @Column(nullable = false)
     private int age;
-  /*  @Column(nullable = false)
-    private String role;*/
     @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
