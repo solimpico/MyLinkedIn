@@ -1,0 +1,25 @@
+Le classi di dominio sono classi che corrispondono alle tabelle del database.
+In altri termini sono tutte quelle classi di dominio estratte dal modello ER.
+Grazie a Spring Data JPA riusciamo a mappare 1:1 queste classi con le tabelle nel DB (creando di fatto
+anche il DB). Questione fondamentale in questa fase è capire, tra le varie relazioni, quale classe
+è l'owning side e quale è l'inverse side.
+In particolare l'owning side è la classe che della propagazione degli aggiornamenti nel database o,
+in altri termini, la classe per la quale ha senso tenere il riferimento all'id della classe a cui è
+collegata. L'inverse side è l'altra classe.
+Fondamentale anche, nella definizione delle relazioni, la definizione di relazioni BIDIREZIONALI
+e dunque è necessario partire nell'associazione con l'annotazione (OneToOne, ManyToMany, OneToMany, ManyToOne)
+della owning side e poi nella inverse side indicare con l'annotation anche il valore ~mappedBy = "nome classe"~.
+Per il mapping tra classi e db è fondamentale l'utilizzo del framework Hibernate che si occupa
+appunto di mappare classi di dominio e db seguendo vari approcci (create, create-drop, validate,
+update) visibili nel file application.properties
+
+N.B.
+Nella definizione delle relazioni è possibile definire come i vari dati possono essere caricati
+tramite il valore fetch il quale può essere uguale a LAZY oppure a EAGER.
+Il caricamento EAGER indica che l’oggetto di campo/relazione sarà caricato al momento della creazione
+dell’oggetto padre che lo contiene. Il caricamento LAZY indica invece che l’oggetto di relazione sarà
+caricato al momento dell’invocazione del metodo sul quale è applicata l’annotation che specifica la
+modalità LAZY.
+
+Va da se che il metodo EAGER non sempre è conveniente perché ad esempio può esistere un post senza thread
+quindi è inutile andare a caricare le thread quando magari ancora non esistono.

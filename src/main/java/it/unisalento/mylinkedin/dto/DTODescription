@@ -1,0 +1,13 @@
+Una oggetto DTO (Data Transfer Object) è un oggetto utile al trasferimento di dati
+da un sottoinsieme ad un altro della stessa applicazione.
+Esemplificando un DTO può essere utilizzato in combinazione con un oggetto DAO (Data Access Object)
+Un oggetto DAO (repository in spring) utilizza un oggetto DTO per salvare dati sul database.
+La differenza sta nel fatto che un DTO è un oggetto "più di frontiera" nel senso che è l'oggetto
+ritornato da, ad esempio, un form online (realmente viene tornato tipicamente un JSON e poi questo
+viene serializzato e convertito in DTO) => per questa ragione il DTO può contenere metodi e attributi
+che non appartengono alla corrispondente classe di dominio.
+
+N.B
+In Spring la classe DAO corrispondente ad una classe di dominio altro non è che un interfaccia
+che estende "JpaRepository" con la quale si indica la classe di dominio che tratta e la tipologia
+dell'id utilizzato nella classe di dominio [ES. public interface UserRepository extends JpaRepository<User, Integer>]
