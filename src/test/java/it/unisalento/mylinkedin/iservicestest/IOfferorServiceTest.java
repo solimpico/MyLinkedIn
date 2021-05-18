@@ -206,4 +206,9 @@ public class IOfferorServiceTest {
         }
         catch (CompanyException e){}
     }
+
+    @Test
+    void findOfferorRegistrationRequestTest(){
+        assertThat(offerorService.findOfferorRegistrationRequest()).isNotNull();
+    }
 }

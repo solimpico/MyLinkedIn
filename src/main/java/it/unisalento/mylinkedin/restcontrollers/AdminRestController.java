@@ -103,6 +103,20 @@ public class AdminRestController {
         return null;
     }
 
+    @GetMapping(value = "/getRegistrationRequest", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public List<UserDTO> getRegistrationRequest(){
+        List<UserDTO> userDTOList = new ArrayList<>();
+        List<Applicant> applicantList = applicantService.findApplicantRegistrationRequest();
+        List<Offeror> offerorList = offerorService.findOfferorRegistrationRequest();
+        for(Applicant applicant : applicantList){
+            userDTOList.add(new ApplicantDTO().dtoFromDomain(applicant));
+        }
+        for(Offeror offeror : offerorList){
+            userDTOList.add(new OfferorDTO().dtoFromDomain(offeror));
+        }
+        return userDTOList;
+    }
+
 
 
     //GESTIONE TIPOLOGIE DI POST -----------------------------------------------------------

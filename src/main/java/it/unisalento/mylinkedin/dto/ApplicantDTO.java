@@ -22,12 +22,16 @@ public class ApplicantDTO extends UserDTO{
         if(applicant.getProfileImage() != null){
             profileImagePath = applicant.getProfileImage().getProfilePicturePath();
         }
-        int[] skilIdArray = new int[applicant.getSkilApplicantList().size()];
-        int i = 0;
-        for(SkilApplicant skilApplicant : applicant.getSkilApplicantList()){
-            skilIdArray[i] = skilApplicant.getSkil().getId();
-            i++;
+        int[] skilIdArray = null;
+        if(applicant.getSkilApplicantList() != null) {
+            skilIdArray = new int[applicant.getSkilApplicantList().size()];
+            int i = 0;
+            for(SkilApplicant skilApplicant : applicant.getSkilApplicantList()){
+                skilIdArray[i] = skilApplicant.getSkil().getId();
+                i++;
+            }
         }
+
         return new ApplicantDTO(applicant.getId(), applicant.getName(), applicant.getSurname(), applicant.getBirthday(), applicant.getAge(), "Applicant", applicant.getEmail(), null, applicant.getPassword(), null, profileImagePath, applicant.isRegistered(), applicant.isEnabling(), skilIdArray);
     }
 

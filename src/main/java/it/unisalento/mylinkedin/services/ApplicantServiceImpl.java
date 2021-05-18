@@ -12,6 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Service
 public class ApplicantServiceImpl implements IApplicantService {
@@ -44,6 +45,11 @@ public class ApplicantServiceImpl implements IApplicantService {
     @Transactional(rollbackOn = DataIntegrityViolationException.class)
     public Applicant save(Applicant applicant) throws DataIntegrityViolationException {
          return applicantRepository.save(applicant);
+    }
 
+    @Override
+    @Transactional
+    public List<Applicant> findApplicantRegistrationRequest() {
+        return applicantRepository.getNotRegisteredApplicant();
     }
 }

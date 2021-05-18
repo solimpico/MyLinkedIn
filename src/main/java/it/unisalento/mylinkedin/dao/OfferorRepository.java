@@ -14,4 +14,6 @@ public interface OfferorRepository extends JpaRepository<Offeror, Integer> {
     Offeror getByUserId(@Param("id") int id);
     @Query("Select o from Offeror o where o.company.id =:idCompany")
     List<Offeror> getOfferorByCompanyId(@Param("idCompany") int idCompany);
+    @Query("Select o from Offeror o where o.registered = false")
+    List<Offeror> getNotRegisteredOfferor();
 }

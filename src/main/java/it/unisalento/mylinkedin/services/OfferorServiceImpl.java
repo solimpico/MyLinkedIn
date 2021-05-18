@@ -83,6 +83,11 @@ public class OfferorServiceImpl implements IOfferorService {
         catch (Exception e){
             throw new CompanyException();
         }
+    }
 
+    @Override
+    @Transactional
+    public List<Offeror> findOfferorRegistrationRequest() {
+        return offerorRepository.getNotRegisteredOfferor();
     }
 }

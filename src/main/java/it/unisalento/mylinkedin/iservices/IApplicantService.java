@@ -7,9 +7,12 @@ import it.unisalento.mylinkedin.exceptions.SavingUserException;
 import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.List;
+
 public interface IApplicantService {
     Applicant saveRegistrationtRequestApplicant(User user) throws SavingUserException;
     Applicant findByUserId(int userId) throws UserNotFoundException;
     Applicant save(Applicant applicant) throws DataIntegrityViolationException;
+    List<Applicant> findApplicantRegistrationRequest();
 
 }

@@ -203,4 +203,13 @@ public class AdminRestControllerTest {
         }
     }
 
+    @Test
+    void showRegistrationRequestTest(){
+        try{
+            mockMvc.perform(get("/admin/getRegistrationRequest").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

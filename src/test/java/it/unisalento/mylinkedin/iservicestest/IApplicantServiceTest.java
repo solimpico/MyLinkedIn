@@ -148,4 +148,10 @@ public class IApplicantServiceTest {
         assertThat(exp).isNotNull();
     }
 
+    @Test
+    void findApplicantRegistrationRequestTest(){
+        assertThat(applicantService.findApplicantRegistrationRequest()).isNotNull();
+    }
+
+
 }
