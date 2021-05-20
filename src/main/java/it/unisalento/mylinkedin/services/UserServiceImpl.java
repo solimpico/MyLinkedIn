@@ -1,19 +1,17 @@
 package it.unisalento.mylinkedin.services;
 
 import it.unisalento.mylinkedin.dao.ApplicantRepository;
-import it.unisalento.mylinkedin.dao.MessageRepository;
 import it.unisalento.mylinkedin.dao.OfferorRepository;
 import it.unisalento.mylinkedin.dao.UserRepository;
-import it.unisalento.mylinkedin.domain.Applicant;
-import it.unisalento.mylinkedin.domain.Message;
-import it.unisalento.mylinkedin.domain.Offeror;
 import it.unisalento.mylinkedin.domain.User;
-import it.unisalento.mylinkedin.exceptions.MessageException;
-import it.unisalento.mylinkedin.exceptions.SavingUserException;
 import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
 import it.unisalento.mylinkedin.iservices.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
@@ -46,5 +44,14 @@ public class UserServiceImpl implements IUserService {
     @Transactional
     public List<User> getAll(){
         return userRepository.findAll();
+    }
+
+    @Override
+    public User findByEmail(String email) throws UserNotFoundException {
+        User user = userRepository.findByEmail(email);
+        if (user == null){
+            throw new UserNotFoundException();
+        }
+        return user;
     }
 }

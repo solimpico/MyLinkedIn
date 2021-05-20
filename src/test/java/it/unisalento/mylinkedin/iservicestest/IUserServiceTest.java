@@ -90,4 +90,21 @@ public class IUserServiceTest {
     void getAllTest(){
         assertThat(userService.getAll()).isNotNull();
     }
+
+    @Test
+    void findByEmailTest(){
+        try{
+            assertThat(userService.findByEmail(user.getEmail())).isNotNull();
+            assertThat(userService.findByEmail(user.getEmail()).getEmail()).isEqualTo(user.getEmail());
+        }
+        catch (UserNotFoundException e){}
+    }
+
+    @Test
+    void findByEmailThrowExTest(){
+        Exception ex = assertThrows(UserNotFoundException.class, () -> {
+            userService.findByEmail("notvalidEmail");
+        });
+        assertThat(ex).isNotNull();
+    }
 }

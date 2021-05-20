@@ -1,15 +1,14 @@
 package it.unisalento.mylinkedin.restcontrollers;
 
+import it.unisalento.mylinkedin.dao.UserRepository;
 import it.unisalento.mylinkedin.domain.*;
-import it.unisalento.mylinkedin.dto.ApplicantDTO;
-import it.unisalento.mylinkedin.dto.MessageDTO;
-import it.unisalento.mylinkedin.dto.OfferorDTO;
-import it.unisalento.mylinkedin.dto.UserDTO;
+import it.unisalento.mylinkedin.dto.*;
 import it.unisalento.mylinkedin.exceptions.MessageException;
 import it.unisalento.mylinkedin.exceptions.SavingUserException;
 import it.unisalento.mylinkedin.exceptions.SkilNotFoundException;
 import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
 import it.unisalento.mylinkedin.iservices.*;
+import it.unisalento.mylinkedin.security.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/public")
 public class UserRestController {
 
     @Autowired
@@ -37,6 +36,22 @@ public class UserRestController {
     IMessageService messageService;
     @Autowired
     ISkilService skilService;
+
+    @Autowired
+    private JwtProvider jwtProvider;
+
+
+    @PostMapping(value="/login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<LoginTokenDTO> authenticate(@RequestBody LoginInputDTO body) throws UserNotFoundException{
+        User user = userService.findByEmail(body.getEmail());
+        LoginTokenDTO tokenDTO = new LoginTokenDTO();
+        if(user != null && user.getEmail().equals(body.getEmail()) && user.getPassword().equals(body.getPassword())) {
+            String jwt = jwtProvider.createJwt();
+            tokenDTO.setToken(jwt);
+            return ResponseEntity.ok(tokenDTO);
+        }
+        else return ResponseEntity.ok(tokenDTO);
+    }
 
 
     @PostMapping(value = "/registrationRequest", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -131,6 +146,14 @@ public class UserRestController {
             return new OfferorDTO().dtoFromDomain(offerorService.findByUserId(id));
         }
         return null;
+    }
+
+    @GetMapping(value = "/prova", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO prova(){
+        UserDTO userDTO = new UserDTO();
+        userDTO.setName("Pippo");
+        userDTO.setSurname("Male");
+        return userDTO;
     }
 
 
