@@ -35,89 +35,26 @@ public class AdminRestController {
 
     //GESTIONE UTENTI ---------------------------------------------------------
 
-    @PutMapping(value = "/enablingUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO enablingUser(@PathVariable int id) throws UserNotFoundException, SavingUserException {
-        if(applicantService.findByUserId(id) != null){
-            Applicant applicant = applicantService.findByUserId(id);
-            applicant.setEnabling(true);
-            return new ApplicantDTO().dtoFromDomain(applicantService.save(applicant));
+    @PutMapping(value = "/confirmRegApplicant/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO confirmRegistration(@PathVariable int id) throws UserNotFoundException{
+        try{
+            return new ApplicantDTO().dtoFromDomain(applicantService.confirmAndEnable(id));
         }
-        else if (offerorService.findByUserId(id) != null){
-            Offeror offeror = offerorService.findByUserId(id);
-            offeror.setEnabling(true);
-            return new OfferorDTO().dtoFromDomain(offerorService.save(offeror));
+        catch (UserNotFoundException e){}
+        try{
+            return new OfferorDTO().dtoFromDomain(offerorService.confirmAndEnable(id));
         }
-        return null;
-    }
-
-    @PutMapping(value = "/disablingUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO disablingUser(@PathVariable int id) throws UserNotFoundException, SavingUserException{
-        if(applicantService.findByUserId(id) != null){
-            Applicant applicant = applicantService.findByUserId(id);
-            applicant.setEnabling(false);
-            applicantService.save(applicant);
-            return new ApplicantDTO().dtoFromDomain(applicant);
-        }
-        else if (offerorService.findByUserId(id) != null){
-            Offeror offeror = offerorService.findByUserId(id);
-            offeror.setEnabling(false);
-            offerorService.save(offeror);
-            return new OfferorDTO().dtoFromDomain(offeror);
-        }
-        return null;
-    }
-
-    @PutMapping(value = "/confirmReg/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO confirmRegistration(@PathVariable int id) throws UserNotFoundException, SavingUserException{
-        if(applicantService.findByUserId(id) != null){
-            Applicant applicant = applicantService.findByUserId(id);
-            applicant.setRegistered(true);
-            applicant.setEnabling(true);
-            applicantService.save(applicant);
-            return new ApplicantDTO().dtoFromDomain(applicant);
-        }
-        else if (offerorService.findByUserId(id) != null){
-            Offeror offeror = offerorService.findByUserId(id);
-            offeror.setRegistered(true);
-            offeror.setEnabling(true);
-            offerorService.save(offeror);
-            return new OfferorDTO().dtoFromDomain(offeror);
-        }
-        return null;
-    }
-
-    @DeleteMapping(value = "/delete/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<User> deleteUser(@PathVariable int id) throws UserNotFoundException{
-        userService.deleteUser(id);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @GetMapping(value = "/getById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO showUser(@PathVariable int id) throws UserNotFoundException{
-        if(applicantService.findByUserId(id) != null){
-            return new ApplicantDTO().dtoFromDomain(applicantService.findByUserId(id));
-        }
-        else if (offerorService.findByUserId(id) != null){
-            return new OfferorDTO().dtoFromDomain(offerorService.findByUserId(id));
-        }
+        catch (UserNotFoundException e){}
         return null;
     }
 
     @GetMapping(value = "/getRegistrationRequest", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<UserDTO> getRegistrationRequest(){
         List<UserDTO> userDTOList = new ArrayList<>();
-        List<Applicant> applicantList = applicantService.findApplicantRegistrationRequest();
-        List<Offeror> offerorList = offerorService.findOfferorRegistrationRequest();
-        for(Applicant applicant : applicantList){
-            userDTOList.add(new ApplicantDTO().dtoFromDomain(applicant));
-        }
-        for(Offeror offeror : offerorList){
-            userDTOList.add(new OfferorDTO().dtoFromDomain(offeror));
-        }
+        userDTOList.addAll(new OfferorDTO().listDTOFromListDomain(offerorService.findOfferorRegistrationRequest()));
+        userDTOList.addAll(new ApplicantDTO().listDTOFromListDomain(applicantService.findApplicantRegistrationRequest()));
         return userDTOList;
     }
-
-
 
     //GESTIONE TIPOLOGIE DI POST -----------------------------------------------------------
 
@@ -133,7 +70,7 @@ public class AdminRestController {
 
     @GetMapping(value = "/showExistingRequiredField", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<RequiredFieldDTO> showRequiredField(){
-        List<RequiredFieldDTO> requiredFieldDTOList = new ArrayList<RequiredFieldDTO>();
+        List<RequiredFieldDTO> requiredFieldDTOList = new ArrayList<>();
         List<RequiredField> requiredFieldList =  requiredFieldsService.getAll();
         for (RequiredField reqField : requiredFieldList) {
             RequiredFieldDTO requiredFieldDTO = new RequiredFieldDTO(reqField.getId(), reqField.getRequiredField());
@@ -145,7 +82,7 @@ public class AdminRestController {
     @GetMapping(value = "/showExistingType", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<PostTypeDTO> showType(){
 
-        List<PostTypeDTO> postTypeDTOList = new ArrayList<PostTypeDTO>();
+        List<PostTypeDTO> postTypeDTOList = new ArrayList<>();
         List<PostType> postTypeList =  postTypeService.showAllPostType();
         for (PostType type : postTypeList){
             postTypeDTOList.add(new PostTypeDTO().dtoFromDomain(type));

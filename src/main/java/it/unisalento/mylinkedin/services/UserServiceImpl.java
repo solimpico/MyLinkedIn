@@ -1,8 +1,12 @@
 package it.unisalento.mylinkedin.services;
 
+import it.unisalento.mylinkedin.dao.ApplicantRepository;
 import it.unisalento.mylinkedin.dao.MessageRepository;
+import it.unisalento.mylinkedin.dao.OfferorRepository;
 import it.unisalento.mylinkedin.dao.UserRepository;
+import it.unisalento.mylinkedin.domain.Applicant;
 import it.unisalento.mylinkedin.domain.Message;
+import it.unisalento.mylinkedin.domain.Offeror;
 import it.unisalento.mylinkedin.domain.User;
 import it.unisalento.mylinkedin.exceptions.MessageException;
 import it.unisalento.mylinkedin.exceptions.SavingUserException;
@@ -12,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,6 +24,10 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    ApplicantRepository applicantRepository;
+    @Autowired
+    OfferorRepository offerorRepository;
 
     @Override
     @Transactional(rollbackOn = UserNotFoundException.class)

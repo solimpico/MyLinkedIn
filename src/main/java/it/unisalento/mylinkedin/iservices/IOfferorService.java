@@ -8,7 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 
-public interface IOfferorService {
+public interface IOfferorService{
     Offeror saveRegistrationtRequestOfferor(User user) throws SavingUserException;
     Offeror findByUserId(int userId) throws UserNotFoundException;
     Offeror save(Offeror offeror) throws DataIntegrityViolationException;
@@ -16,5 +16,6 @@ public interface IOfferorService {
     Company findCompanyByName(String name);
     void deleteCompany(int idCompany) throws  CompanyException;
     List<Offeror> findOfferorRegistrationRequest();
+    Offeror confirmAndEnable(int  idOfferor) throws UserNotFoundException;
 
 }

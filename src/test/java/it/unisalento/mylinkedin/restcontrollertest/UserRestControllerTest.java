@@ -71,6 +71,24 @@ public class UserRestControllerTest {
     }
 
     @Test
+    void enablingUserTest(){
+        try{
+            mockMvc.perform(put("/user/enablingUser/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void disablingUserTest(){
+        try{
+            mockMvc.perform(put("/user/disablingUser/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
     void registrationRequestTest(){
         try{
             mockMvc.perform(post("/user/registrationRequest").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(userDTO))).andExpect(status().isOk());
@@ -96,6 +114,24 @@ public class UserRestControllerTest {
     void showConversationTest(){
         try{
             mockMvc.perform(get("/user/showConversation/{userId}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void deleteUserTest(){
+        try{
+            mockMvc.perform(delete("/user/delete/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void getByIdTest(){
+        try{
+            mockMvc.perform(get("user/getById/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }

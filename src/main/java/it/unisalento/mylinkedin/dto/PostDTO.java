@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class PostDTO {
+public class PostDTO{
 
     private int id;
     private Date datetime;

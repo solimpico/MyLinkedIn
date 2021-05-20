@@ -1,8 +1,8 @@
 package it.unisalento.mylinkedin.services;
 
 import it.unisalento.mylinkedin.dao.ApplicantRepository;
-import it.unisalento.mylinkedin.domain.Administrator;
 import it.unisalento.mylinkedin.domain.Applicant;
+import it.unisalento.mylinkedin.domain.Offeror;
 import it.unisalento.mylinkedin.domain.User;
 import it.unisalento.mylinkedin.exceptions.SavingUserException;
 import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
@@ -51,5 +51,13 @@ public class ApplicantServiceImpl implements IApplicantService {
     @Transactional
     public List<Applicant> findApplicantRegistrationRequest() {
         return applicantRepository.getNotRegisteredApplicant();
+    }
+
+    @Override
+    public Applicant confirmAndEnable(int idApplicant) throws UserNotFoundException {
+        Applicant applicant = applicantRepository.findById(idApplicant).orElseThrow(() -> new UserNotFoundException());
+        applicant.setEnabling(true);
+        applicant.setRegistered(true);
+        return applicantRepository.save(applicant);
     }
 }

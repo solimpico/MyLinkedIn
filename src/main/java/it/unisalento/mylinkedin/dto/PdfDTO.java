@@ -2,7 +2,7 @@ package it.unisalento.mylinkedin.dto;
 
 import javax.validation.constraints.NotNull;
 
-public class PdfDTO {
+public class PdfDTO{
     @NotNull
     int[] idPostArray;
 

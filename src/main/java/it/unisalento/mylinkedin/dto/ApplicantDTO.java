@@ -2,8 +2,12 @@ package it.unisalento.mylinkedin.dto;
 
 import it.unisalento.mylinkedin.domain.Applicant;
 import it.unisalento.mylinkedin.domain.SkilApplicant;
+import org.springframework.stereotype.Component;
 
-public class ApplicantDTO extends UserDTO{
+import java.util.ArrayList;
+import java.util.List;
+
+public class ApplicantDTO extends UserDTO {
     boolean registered;
     boolean enabling;
     private int[] skilIdArray;
@@ -15,24 +19,6 @@ public class ApplicantDTO extends UserDTO{
         this.registered = registered;
         this.enabling = enabling;
         this.skilIdArray = skilIdArray;
-    }
-
-    public ApplicantDTO dtoFromDomain(Applicant applicant){
-        String profileImagePath = null;
-        if(applicant.getProfileImage() != null){
-            profileImagePath = applicant.getProfileImage().getProfilePicturePath();
-        }
-        int[] skilIdArray = null;
-        if(applicant.getSkilApplicantList() != null) {
-            skilIdArray = new int[applicant.getSkilApplicantList().size()];
-            int i = 0;
-            for(SkilApplicant skilApplicant : applicant.getSkilApplicantList()){
-                skilIdArray[i] = skilApplicant.getSkil().getId();
-                i++;
-            }
-        }
-
-        return new ApplicantDTO(applicant.getId(), applicant.getName(), applicant.getSurname(), applicant.getBirthday(), applicant.getAge(), "Applicant", applicant.getEmail(), null, applicant.getPassword(), null, profileImagePath, applicant.isRegistered(), applicant.isEnabling(), skilIdArray);
     }
 
     public boolean isRegistered() {
@@ -57,5 +43,31 @@ public class ApplicantDTO extends UserDTO{
 
     public void setSkilIdArray(int[] skilIdArray) {
         this.skilIdArray = skilIdArray;
+    }
+
+    public ApplicantDTO dtoFromDomain(Applicant applicant){
+        String profileImagePath = null;
+        if(applicant.getProfileImage() != null){
+            profileImagePath = applicant.getProfileImage().getProfilePicturePath();
+        }
+        int[] skilIdArray = null;
+        if(applicant.getSkilApplicantList() != null) {
+            skilIdArray = new int[applicant.getSkilApplicantList().size()];
+            int i = 0;
+            for(SkilApplicant skilApplicant : applicant.getSkilApplicantList()){
+                skilIdArray[i] = skilApplicant.getSkil().getId();
+                i++;
+            }
+        }
+
+        return new ApplicantDTO(applicant.getId(), applicant.getName(), applicant.getSurname(), applicant.getBirthday(), applicant.getAge(), "Applicant", applicant.getEmail(), null, applicant.getPassword(), null, profileImagePath, applicant.isRegistered(), applicant.isEnabling(), skilIdArray);
+    }
+
+    public List<ApplicantDTO> listDTOFromListDomain(List<Applicant> applicantList){
+        List<ApplicantDTO> applicantDTOList = new ArrayList<>();
+        for(Applicant applicant : applicantList){
+            applicantDTOList.add(new ApplicantDTO().dtoFromDomain(applicant));
+        }
+        return applicantDTOList;
     }
 }

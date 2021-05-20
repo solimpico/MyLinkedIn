@@ -2,7 +2,8 @@ package it.unisalento.mylinkedin.dto;
 
 import javax.validation.constraints.NotBlank;
 
-public class RequiredFieldDTO {
+
+public class RequiredFieldDTO{
     int id;
     @NotBlank
     String field;

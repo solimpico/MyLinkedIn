@@ -90,4 +90,13 @@ public class OfferorServiceImpl implements IOfferorService {
     public List<Offeror> findOfferorRegistrationRequest() {
         return offerorRepository.getNotRegisteredOfferor();
     }
+
+    @Override
+    public Offeror confirmAndEnable(int  idOfferor) throws UserNotFoundException {
+        Offeror offeror = offerorRepository.findById(idOfferor).orElseThrow(() -> new UserNotFoundException());
+        offeror.setEnabling(true);
+        offeror.setRegistered(true);
+        return offerorRepository.save(offeror);
+
+    }
 }

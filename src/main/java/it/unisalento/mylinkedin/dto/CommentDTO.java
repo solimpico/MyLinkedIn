@@ -1,6 +1,7 @@
 package it.unisalento.mylinkedin.dto;
 
 import it.unisalento.mylinkedin.domain.Comment;
+import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Component
 public class CommentDTO {
     private int id;
     @NotBlank

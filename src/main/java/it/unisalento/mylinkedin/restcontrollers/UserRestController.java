@@ -1,8 +1,6 @@
 package it.unisalento.mylinkedin.restcontrollers;
 
-import it.unisalento.mylinkedin.domain.Message;
-import it.unisalento.mylinkedin.domain.SkilApplicant;
-import it.unisalento.mylinkedin.domain.User;
+import it.unisalento.mylinkedin.domain.*;
 import it.unisalento.mylinkedin.dto.ApplicantDTO;
 import it.unisalento.mylinkedin.dto.MessageDTO;
 import it.unisalento.mylinkedin.dto.OfferorDTO;
@@ -13,7 +11,9 @@ import it.unisalento.mylinkedin.exceptions.SkilNotFoundException;
 import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
 import it.unisalento.mylinkedin.iservices.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -82,6 +82,55 @@ public class UserRestController {
             messageDTOList.add(new MessageDTO().dtoFromDomain(message));
         }
         return messageDTOList;
+    }
+
+    @PutMapping(value = "/enablingUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO enablingUser(@PathVariable int id) throws UserNotFoundException {
+        if(applicantService.findByUserId(id) != null){
+            Applicant applicant = applicantService.findByUserId(id);
+            applicant.setEnabling(true);
+            return new ApplicantDTO().dtoFromDomain(applicantService.save(applicant));
+        }
+        else if (offerorService.findByUserId(id) != null){
+            Offeror offeror = offerorService.findByUserId(id);
+            offeror.setEnabling(true);
+            return new OfferorDTO().dtoFromDomain(offerorService.save(offeror));
+        }
+        return null;
+    }
+
+    @PutMapping(value = "/disablingUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO disablingUser(@PathVariable int id) throws UserNotFoundException{
+        if(applicantService.findByUserId(id) != null){
+            Applicant applicant = applicantService.findByUserId(id);
+            applicant.setEnabling(false);
+            applicantService.save(applicant);
+            return new ApplicantDTO().dtoFromDomain(applicant);
+        }
+        else if (offerorService.findByUserId(id) != null){
+            Offeror offeror = offerorService.findByUserId(id);
+            offeror.setEnabling(false);
+            offerorService.save(offeror);
+            return new OfferorDTO().dtoFromDomain(offeror);
+        }
+        return null;
+    }
+
+    @DeleteMapping(value = "/delete/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<User> deleteUser(@PathVariable int id) throws UserNotFoundException{
+        userService.deleteUser(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/getById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO showUser(@PathVariable int id) throws UserNotFoundException{
+        if(applicantService.findByUserId(id) != null){
+            return new ApplicantDTO().dtoFromDomain(applicantService.findByUserId(id));
+        }
+        else if (offerorService.findByUserId(id) != null){
+            return new OfferorDTO().dtoFromDomain(offerorService.findByUserId(id));
+        }
+        return null;
     }
 
 

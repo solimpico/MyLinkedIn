@@ -13,6 +13,4 @@ public interface IUserService {
     void deleteUser(int id) throws UserNotFoundException;
     User findById(int id) throws UserNotFoundException;
     List<User> getAll();
-
-
 }

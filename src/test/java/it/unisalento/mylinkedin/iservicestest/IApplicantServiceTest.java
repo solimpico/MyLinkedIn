@@ -30,10 +30,15 @@ public class IApplicantServiceTest {
     private Applicant applicantForFronted;
     private User frontendUser;
     private Applicant applicant;
+    private Applicant notRegisteredApplicant;
 
 
     @BeforeEach
     void initTestEnv(){
+        this.notRegisteredApplicant = new Applicant();
+        this.notRegisteredApplicant.setId(36);
+        this.notRegisteredApplicant.setName("Marino");
+
         this.applicant = new Applicant();
         this.applicant.setId(2);
         this.applicant.setName("Simone");
@@ -74,8 +79,9 @@ public class IApplicantServiceTest {
         try{
             when(applicantServiceMock.saveRegistrationtRequestApplicant(frontendUser)).thenReturn(applicantForFronted);
             when(applicantServiceMock.save(applicant)).thenReturn(applicant);
+            when(applicantServiceMock.confirmAndEnable(notRegisteredApplicant.getId())).thenReturn(notRegisteredApplicant);
         }
-        catch (SavingUserException e){
+        catch (SavingUserException | UserNotFoundException e){
             e.printStackTrace();
         }
     }
@@ -151,6 +157,23 @@ public class IApplicantServiceTest {
     @Test
     void findApplicantRegistrationRequestTest(){
         assertThat(applicantService.findApplicantRegistrationRequest()).isNotNull();
+    }
+
+    @Test
+    void confirmAndEnableTest(){
+        try {
+            assertThat(applicantServiceMock.confirmAndEnable(notRegisteredApplicant.getId())).isNotNull();
+            assertThat(applicantServiceMock.confirmAndEnable(notRegisteredApplicant.getId()).getName()).isEqualTo(notRegisteredApplicant.getName());
+        }
+        catch (UserNotFoundException e){}
+    }
+
+    @Test
+    void confirmAndEnableThrowExTest(){
+        Exception ex = assertThrows(UserNotFoundException.class, () -> {
+            applicantService.confirmAndEnable(0);
+        });
+        assertThat(ex).isNotNull();
     }
 
 

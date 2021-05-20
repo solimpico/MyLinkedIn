@@ -1,6 +1,10 @@
 package it.unisalento.mylinkedin.dto;
 
+import it.unisalento.mylinkedin.domain.Applicant;
 import it.unisalento.mylinkedin.domain.Offeror;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class OfferorDTO extends UserDTO{
     boolean registerd;
@@ -53,6 +57,14 @@ public class OfferorDTO extends UserDTO{
              companyDTO = null;
         }
         return new OfferorDTO(offeror.getId(), offeror.getName(), offeror.getSurname(), offeror.getBirthday(), offeror.getAge(), "Offeror", offeror.getEmail(), null, offeror.getPassword(), null, profileImagePath, offeror.isRegistered(), offeror.isEnabling(), companyDTO);
+    }
+
+    public List<OfferorDTO> listDTOFromListDomain(List<Offeror> offerorList){
+        List<OfferorDTO> offerortDTOList = new ArrayList<>();
+        for(Offeror offeror : offerorList){
+            offerortDTOList.add(new OfferorDTO().dtoFromDomain(offeror));
+        }
+        return offerortDTOList;
     }
 
 }

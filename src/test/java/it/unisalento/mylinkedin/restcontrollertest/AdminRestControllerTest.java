@@ -62,48 +62,10 @@ public class AdminRestControllerTest {
         this.skilDTO.setSkilName("Skil di test");
     }
 
-
-
-    @Test
-    void enablingUserTest(){
-        try{
-            mockMvc.perform(put("/enablingUser/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    void disablingUserTest(){
-        try{
-            mockMvc.perform(put("/disablingUser/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     @Test
     void confirmRegistrationTest(){
         try{
             mockMvc.perform(put("/confirmReg/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    void deleteUserTest(){
-        try{
-            mockMvc.perform(delete("/delete/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    void getByIdTest(){
-        try{
-            mockMvc.perform(get("/getById/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }

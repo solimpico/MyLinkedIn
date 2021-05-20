@@ -2,6 +2,7 @@ package it.unisalento.mylinkedin.dto;
 
 import it.unisalento.mylinkedin.domain.Company;
 import it.unisalento.mylinkedin.domain.Offeror;
+import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;

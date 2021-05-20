@@ -3,9 +3,8 @@ package it.unisalento.mylinkedin.dto;
 import it.unisalento.mylinkedin.domain.Skil;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
 
-public class SkilDTO {
+public class SkilDTO{
     private int id;
     @NotBlank
     private String skilName;

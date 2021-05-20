@@ -9,10 +9,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 
-public interface IApplicantService {
+public interface IApplicantService{
     Applicant saveRegistrationtRequestApplicant(User user) throws SavingUserException;
     Applicant findByUserId(int userId) throws UserNotFoundException;
     Applicant save(Applicant applicant) throws DataIntegrityViolationException;
+    Applicant confirmAndEnable(int idApplicant) throws UserNotFoundException;
     List<Applicant> findApplicantRegistrationRequest();
 
 }

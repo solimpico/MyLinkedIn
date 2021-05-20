@@ -3,10 +3,10 @@ package it.unisalento.mylinkedin.dto;
 import it.unisalento.mylinkedin.domain.Data;
 
 import javax.validation.constraints.NotBlank;
-import java.awt.*;
 
-public class DataDTO {
+public class DataDTO{
     private int id;
+    @NotBlank
     private String field;
     private String data;
     private String dataFilePath;

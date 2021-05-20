@@ -36,13 +36,20 @@ public class IOfferorServiceTest {
     IOfferorService offerorServiceMock;
 
     private Offeror offerorForFronted;
+    private Offeror notRegisteredOfferor;
     private User frontendUser;
     private Offeror offeror;
     private Company company;
     private Company frontendCompany;
 
+
+
     @BeforeEach
     void initTestEnv(){
+        this.notRegisteredOfferor = new Offeror();
+        this.notRegisteredOfferor.setId(29);
+        this.notRegisteredOfferor.setName("Filippo");
+
         this.company = new Company();
         this.company.setName("First Company");
         this.company.setAddress("test");
@@ -97,8 +104,9 @@ public class IOfferorServiceTest {
             when(offerorServiceMock.saveRegistrationtRequestOfferor(frontendUser)).thenReturn(offerorForFronted);
             when(offerorServiceMock.save(offeror)).thenReturn(offeror);
             when(offerorServiceMock.addCompany(offeror, frontendCompany)).thenReturn(frontendCompany);
+            when(offerorServiceMock.confirmAndEnable(notRegisteredOfferor.getId())).thenReturn(notRegisteredOfferor);
         }
-        catch (SavingUserException | CompanyException e){
+        catch (SavingUserException | CompanyException | UserNotFoundException e){
             e.printStackTrace();
         }
     }
@@ -210,5 +218,22 @@ public class IOfferorServiceTest {
     @Test
     void findOfferorRegistrationRequestTest(){
         assertThat(offerorService.findOfferorRegistrationRequest()).isNotNull();
+    }
+
+    @Test
+    void confirmAndEnableTest(){
+        try {
+            assertThat(offerorServiceMock.confirmAndEnable(notRegisteredOfferor.getId())).isNotNull();
+            assertThat(offerorServiceMock.confirmAndEnable(notRegisteredOfferor.getId()).getName()).isEqualTo(notRegisteredOfferor.getName());
+        }
+        catch (UserNotFoundException e){}
+    }
+
+    @Test
+    void confirmAndEnableThrowExTest(){
+        Exception ex = assertThrows(UserNotFoundException.class, () -> {
+            offerorService.confirmAndEnable(0);
+        });
+        assertThat(ex).isNotNull();
     }
 }

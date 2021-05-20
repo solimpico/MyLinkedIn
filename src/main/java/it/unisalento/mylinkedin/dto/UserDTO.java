@@ -1,7 +1,5 @@
 package it.unisalento.mylinkedin.dto;
 
-
-import it.unisalento.mylinkedin.domain.SkilApplicant;
 import it.unisalento.mylinkedin.domain.User;
 import it.unisalento.mylinkedin.validators.MatchFieldConstraint;
 
@@ -10,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @MatchFieldConstraint(email = "email", emailMatch = "emailToVerify", password = "password", passwordMatch = "passwordToVerify")
-public class UserDTO {
+public class UserDTO{
 
     private int id;
     @NotBlank
