@@ -14,4 +14,6 @@ public interface IUserService {
     User findById(int id) throws UserNotFoundException;
     List<User> getAll();
     User findByEmail(String email) throws UserNotFoundException;
+    String whoIs(User user) throws  UserNotFoundException;
+    User isRegistered(String email) throws UserNotFoundException;
 }

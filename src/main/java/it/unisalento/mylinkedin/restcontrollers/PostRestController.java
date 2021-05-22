@@ -7,12 +7,15 @@ import it.unisalento.mylinkedin.dto.DataDTO;
 import it.unisalento.mylinkedin.dto.PostDTO;
 import it.unisalento.mylinkedin.exceptions.*;
 import it.unisalento.mylinkedin.iservices.*;
+import it.unisalento.mylinkedin.security.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.swing.text.Document;
 import javax.validation.Valid;
 import java.io.FileOutputStream;
@@ -38,109 +41,150 @@ public class PostRestController {
     IApplicantService applicantService;
     @Autowired
     IOfferorService offerorService;
+    @Autowired
+    JwtProvider jwtProvider;
 
 
     @PostMapping(value = "/addPost", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public PostDTO addPost(@RequestBody @Valid PostDTO postDTO) throws UserNotFoundException, AddPostException {
-        Applicant applicant;
-        Offeror offeror;
-        boolean enable = false;
-        try{
-            applicant = applicantService.findByUserId(postDTO.getUserId());
-            if(applicant.isEnabling() && applicant.isRegistered()){
-                enable = true;
-            }
-        }
-        catch (Exception e){}
-        try{
-            offeror = offerorService.findByUserId(postDTO.getUserId());
-            if(offeror.isEnabling() && offeror.isRegistered()){
-                enable = true;
-            }
-        }
-        catch (Exception e){}
-        if(enable == true) {
-            Post post = new Post(postDTO.getId(), true, new Date(), userService.findById(postDTO.getUserId()), null, null, postTypeService.findByName(postDTO.getType()), null, null);
-            List<Data> dataList = new ArrayList<>();
-            List<String> skilList = new ArrayList<>();
-            //avvaloro dataList e/o skilList
-            for (DataDTO dataDTO : postDTO.getDataDTOList()) {
-                if (dataDTO.getField().equalsIgnoreCase("skil")) {
-                    skilList.add(dataDTO.getData());
-                } else {
-                    Data data = new Data(dataDTO.getId(), dataDTO.getField(), dataDTO.getData(), dataDTO.getDataFilePath(), post);
-                    dataList.add(data);
+    public PostDTO addPost(@RequestBody @Valid PostDTO postDTO, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, AddPostException, UserNotAuthorizedException {
+        if(isOfferorOrApplicant(request) != 0){
+            Applicant applicant;
+            Offeror offeror;
+            boolean enable = false;
+            try{
+                applicant = applicantService.findByUserId(postDTO.getUserId());
+                if(applicant.isEnabling() && applicant.isRegistered()){
+                    enable = true;
                 }
             }
-            post = postService.addPost(post, dataList, skilList);
+            catch (Exception e){}
+            try{
+                offeror = offerorService.findByUserId(postDTO.getUserId());
+                if(offeror.isEnabling() && offeror.isRegistered()){
+                    enable = true;
+                }
+            }
+            catch (Exception e){}
+            if(enable == true) {
+                Post post = new Post(postDTO.getId(), true, new Date(), userService.findById(postDTO.getUserId()), null, null, postTypeService.findByName(postDTO.getType()), null, null);
+                List<Data> dataList = new ArrayList<>();
+                List<String> skilList = new ArrayList<>();
+                //avvaloro dataList e/o skilList
+                for (DataDTO dataDTO : postDTO.getDataDTOList()) {
+                    if (dataDTO.getField().equalsIgnoreCase("skil")) {
+                        skilList.add(dataDTO.getData());
+                    } else {
+                        Data data = new Data(dataDTO.getId(), dataDTO.getField(), dataDTO.getData(), dataDTO.getDataFilePath(), post);
+                        dataList.add(data);
+                    }
+                }
+                post = postService.addPost(post, dataList, skilList);
 
-            return postDTO.dtoFromDomain(post);
+                return postDTO.dtoFromDomain(post);
+            }
+            else{
+                System.out.println("Tentativo di aggiunta post da parte di utente non registrato\no non abilitato.");
+                throw new UserNotAuthorizedException();
+            }
         }
-        else{
-            System.out.println("Tentativo di aggiunta post da parte di utente non registrato\no non abilitato.");
-            return null;
+        else {
+            throw new UserNotAuthorizedException();
         }
     }
 
     @DeleteMapping (value = ("/delete/{id}"), produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Post> deletePost(@PathVariable int id) throws PostException{
-        postService.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @GetMapping(value = "/getById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public PostDTO showPost(@PathVariable  int id) throws PostNotFoundException {
-        return new PostDTO().dtoFromDomain(postService.findById(id));
-    }
-
-   /* @GetMapping(value = "/showVisible", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<PostDTO> showVisible(){
-        List<PostDTO> postDTOList = new ArrayList<>();
-        List<Post> postList = postService.findVisible();
-        for (Post post : postList) {
-            PostDTO postDTO = new PostDTO();
-            postDTOList.add(postDTO.dtoFromDomain(post));
-        }
-        return postDTOList;
-    }*/
-
-    @PostMapping(value = "/addComment", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public PostDTO addComment(@RequestBody @Valid CommentDTO commentDTO) throws PostNotFoundException, CommentNotFoundException {
-        Post post = postService.findById(commentDTO.getPostId());
-        if(commentDTO.getThread() == 0){
-            //nuova thread
-            commentService.save(new Comment(0, commentDTO.getAuthor(), commentDTO.getComment(), new Date(), null, null, post));
-            //ritorno il post aggiornato
-            return new PostDTO().dtoFromDomain(post);
+    public ResponseEntity<Post> deletePost(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws PostNotFoundException, PostException, UserNotAuthorizedException, UserNotFoundException{
+        int idUser = isOfferorOrApplicant(request);
+        if(idUser != 0){
+            Post post = postService.findById(id);
+            if(post.getUser().getId() == idUser) {
+                postService.deleteById(id);
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
+            else {
+                throw new UserNotAuthorizedException();
+            }
         }
         else {
-            //thread esistente
-            //trovo il commento thread (per mezzo dell' id)
-            Comment thread = commentService.findById(commentDTO.getThread());
-            //creo il commento
-            Comment comment = new Comment(0, commentDTO.getAuthor(), commentDTO.getComment(), new Date(), thread, null, post);
-            //lo salvo per avere l'id
-            commentService.save(comment);
-            return new PostDTO().dtoFromDomain(post);
+            throw new UserNotAuthorizedException();
+        }
+    }
 
+    @PostMapping(value = "/addComment", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public PostDTO addComment(@RequestBody @Valid CommentDTO commentDTO, HttpServletRequest request, HttpServletResponse response) throws PostNotFoundException, CommentNotFoundException, UserNotFoundException, UserNotAuthorizedException {
+        int idUser = isOfferorOrApplicant(request);
+        if(idUser != 0){
+            if(idUser == commentDTO.getAuthorId()){
+                Post post = postService.findById(commentDTO.getPostId());
+                if(commentDTO.getThread() == 0){
+                    //nuova thread
+                    commentService.save(new Comment(0, commentDTO.getAuthorId(), commentDTO.getComment(), new Date(), null, null, post));
+                    //ritorno il post aggiornato
+                    return new PostDTO().dtoFromDomain(post);
+                }
+                else {
+                    //thread esistente
+                    //trovo il commento thread (per mezzo dell' id)
+                    Comment thread = commentService.findById(commentDTO.getThread());
+                    //creo il commento
+                    Comment comment = new Comment(0, commentDTO.getAuthorId(), commentDTO.getComment(), new Date(), thread, null, post);
+                    //lo salvo per avere l'id
+                    commentService.save(comment);
+                    return new PostDTO().dtoFromDomain(post);
+                }
+            }
+            else {
+                throw new UserNotAuthorizedException();
+            }
+        }
+        else {
+            throw new UserNotAuthorizedException();
         }
     }
 
     @DeleteMapping(value = "/removeComment/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public PostDTO deleteComment(@PathVariable int id) throws PostNotFoundException, CommentNotFoundException{
-        int idPost = commentService.findById(id).getPost().getId();
-        commentService.deleteById(id);
-        return new PostDTO().dtoFromDomain(postService.findById(idPost));
+    public PostDTO deleteComment(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws PostNotFoundException, CommentNotFoundException, UserNotFoundException, UserNotAuthorizedException{
+        int userId = isOfferorOrApplicant(request);
+        if(userId != 0){
+            int idPost = commentService.findById(id).getPost().getId();
+            int idAuthor = commentService.findById(id).getAuthorId();
+            if(idAuthor == userId) {
+                commentService.deleteById(id);
+                return new PostDTO().dtoFromDomain(postService.findById(idPost));
+            }
+            else {
+                throw new UserNotAuthorizedException();
+            }
+        }
+        else {
+            throw new UserNotAuthorizedException();
+        }
     }
 
     @GetMapping(value = "/showVisibleByDate", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<PostDTO> showVisibleByDate(){
-        List<PostDTO> postDTOList = new ArrayList<>();
-        List<Post> postList = postService.findVisibleByDate();
-        for (Post post : postList) {
-            PostDTO postDTO = new PostDTO();
-            postDTOList.add(postDTO.dtoFromDomain(post));
+    public List<PostDTO> showVisibleByDate(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        if(isOfferorOrApplicant(request) != 0){
+            List<PostDTO> postDTOList = new ArrayList<>();
+            List<Post> postList = postService.findVisibleByDate();
+            for (Post post : postList) {
+                PostDTO postDTO = new PostDTO();
+                postDTOList.add(postDTO.dtoFromDomain(post));
+            }
+            return postDTOList;
         }
-        return postDTOList;
+        else {
+            throw new UserNotAuthorizedException();
+        }
+    }
+
+    //CONTROL
+    private int isOfferorOrApplicant(HttpServletRequest request) throws UserNotFoundException{
+        String token = request.getHeader("Authorization").replace("Bearer ","");
+        String email  = jwtProvider.decodeJwt(token).getSubject();
+        User user = userService.isRegistered(email);
+        if(user.getClass().equals(Offeror.class) || user.getClass().equals(Applicant.class)){
+            return user.getId();
+        }
+        return 0;
     }
 }

@@ -65,7 +65,7 @@ public class PostRestControllerTest {
         this.commentDTO = new CommentDTO();
         this.commentDTO.setComment("test");
         this.commentDTO.setThread(0);
-        this.commentDTO.setAuthor("Mattia");
+        this.commentDTO.setAuthorId(1);
         this.commentDTO.setCommentsOfThread(null);
     }
 

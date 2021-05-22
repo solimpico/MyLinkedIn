@@ -12,7 +12,7 @@ public class Comment {
     private int id;
 
     @Column(nullable = false)
-    private String author;
+    private int authorId;
     @Column(nullable = false, length = 500)
     private String comment;
     @Column(nullable = false)
@@ -31,9 +31,9 @@ public class Comment {
 
     public Comment(){}
 
-    public Comment(int id, String author, String comment, Date datetime, Comment thread, List<Comment> commentList, Post post) {
+    public Comment(int id, int authorId, String comment, Date datetime, Comment thread, List<Comment> commentList, Post post) {
         this.id = id;
-        this.author = author;
+        this.authorId = authorId;
         this.comment = comment;
         this.datetime = datetime;
         this.thread = thread;
@@ -49,12 +49,12 @@ public class Comment {
         this.id = id;
     }
 
-    public String getAuthor() {
-        return author;
+    public int getAuthorId() {
+        return authorId;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setAuthorId(int authorId) {
+        this.authorId = authorId;
     }
 
     public String getComment() {

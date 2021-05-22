@@ -53,7 +53,7 @@ public class ICommentServiceTest {
         this.frontendComment.setComment("Prova");
         this.frontendComment.setCommentList(null);
         this.frontendComment.setThread(null);
-        this.frontendComment.setAuthor("TestNName");
+        this.frontendComment.setAuthorId(100);
         this.frontendComment.setDatetime(new Date());
         this.frontendComment.setPost(this.post);
 
@@ -62,7 +62,7 @@ public class ICommentServiceTest {
         this.comment.setComment("Prova");
         this.comment.setCommentList(null);
         this.comment.setThread(null);
-        this.comment.setAuthor("Mattia");
+        this.comment.setAuthorId(1);
         this.comment.setDatetime(new Date());
         this.comment.setPost(this.post);
 
@@ -100,7 +100,7 @@ public class ICommentServiceTest {
     void findByIdTest(){
         try {
             assertThat(commentService.findById(this.comment.getId())).isNotNull();
-            assertThat(commentService.findById(this.comment.getId()).getAuthor()).isEqualTo(this.comment.getAuthor());
+            assertThat(commentService.findById(this.comment.getId()).getAuthorId()).isEqualTo(this.comment.getAuthorId());
         }
         catch (CommentNotFoundException e){
             e.printStackTrace();

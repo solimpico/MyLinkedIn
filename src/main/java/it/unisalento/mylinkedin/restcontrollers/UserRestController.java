@@ -3,10 +3,7 @@ package it.unisalento.mylinkedin.restcontrollers;
 import it.unisalento.mylinkedin.dao.UserRepository;
 import it.unisalento.mylinkedin.domain.*;
 import it.unisalento.mylinkedin.dto.*;
-import it.unisalento.mylinkedin.exceptions.MessageException;
-import it.unisalento.mylinkedin.exceptions.SavingUserException;
-import it.unisalento.mylinkedin.exceptions.SkilNotFoundException;
-import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
+import it.unisalento.mylinkedin.exceptions.*;
 import it.unisalento.mylinkedin.iservices.*;
 import it.unisalento.mylinkedin.security.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +12,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/public")
 public class UserRestController {
 
     @Autowired
@@ -36,25 +34,50 @@ public class UserRestController {
     IMessageService messageService;
     @Autowired
     ISkilService skilService;
+    @Autowired
+    IPostService postService;
 
     @Autowired
-    private JwtProvider jwtProvider;
+    JwtProvider jwtProvider;
 
 
-    @PostMapping(value="/login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value="/public/login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<LoginTokenDTO> authenticate(@RequestBody LoginInputDTO body) throws UserNotFoundException{
         User user = userService.findByEmail(body.getEmail());
         LoginTokenDTO tokenDTO = new LoginTokenDTO();
-        if(user != null && user.getEmail().equals(body.getEmail()) && user.getPassword().equals(body.getPassword())) {
-            String jwt = jwtProvider.createJwt();
-            tokenDTO.setToken(jwt);
-            return ResponseEntity.ok(tokenDTO);
+        if(user.getClass().equals(Applicant.class)) {
+            if (((Applicant) user).isRegistered() == true && ((Applicant) user).isEnabling() == true) {
+                if (user != null && user.getEmail().equals(body.getEmail()) && user.getPassword().equals(body.getPassword())) {
+                    //param role
+                    String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
+                    tokenDTO.setToken(jwt);
+                    return ResponseEntity.ok(tokenDTO);
+                }
+            }
         }
-        else return ResponseEntity.ok(tokenDTO);
+        else if(user.getClass().equals(Offeror.class)) {
+            if (((Offeror) user).isRegistered() == true && ((Offeror) user).isEnabling() == true) {
+                if (user != null && user.getEmail().equals(body.getEmail()) && user.getPassword().equals(body.getPassword())) {
+                    //param role
+                    String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
+                    tokenDTO.setToken(jwt);
+                    return ResponseEntity.ok(tokenDTO);
+                }
+            }
+        }
+            else if(user.getClass().equals(Administrator.class)){
+                if(user != null && user.getEmail().equals(body.getEmail()) && user.getPassword().equals(body.getPassword())) {
+                    //param role
+                    String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
+                    tokenDTO.setToken(jwt);
+                    return ResponseEntity.ok(tokenDTO);
+            }
+        }
+            return ResponseEntity.ok(tokenDTO);
     }
 
 
-    @PostMapping(value = "/registrationRequest", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/public/registrationRequest", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public UserDTO registrationRequest(@RequestBody @Valid UserDTO userDTO) throws SavingUserException, SkilNotFoundException {
         User user = new User(0, userDTO.getName(), userDTO.getSurname(), userDTO.getBirthday(), userDTO.getAge(), userDTO.getEmail(), userDTO.getPassword(), null, null, null, null);
         if(userDTO.getRole().equalsIgnoreCase("offeror")){
@@ -71,90 +94,108 @@ public class UserRestController {
         return null;
         }
 
+    @GetMapping(value = "/public/showVisible", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<PostDTO> showVisible(){
+        List<PostDTO> postDTOList = new ArrayList<>();
+        List<Post> postList = postService.findVisible();
+        for (Post post : postList) {
+            PostDTO postDTO = new PostDTO();
+            postDTOList.add(postDTO.dtoFromDomain(post));
+        }
+        return postDTOList;
+    }
+
+    @GetMapping(value = "public/getById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public PostDTO showPost(@PathVariable  int id) throws PostNotFoundException {
+        return new PostDTO().dtoFromDomain(postService.findById(id));
+    }
+
     @PostMapping(value = "/sendMessage", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public MessageDTO sendMessage(@RequestBody @Valid MessageDTO messageDTO) throws UserNotFoundException, MessageException {
-        User sender = userService.findById(messageDTO.getIdSender());
-        if(messageDTO.getConversationId() == 0){
-            //nuova conversazione
-            return new MessageDTO().dtoFromDomain(messageService.saveMessage(new Message(0, messageDTO.getMessage(), new Date(), messageDTO.getIdReceiver(), sender, null, null)));
+    public MessageDTO sendMessage(@RequestBody @Valid MessageDTO messageDTO, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, MessageException, UserNotAuthorizedException {
+        if(isRegistered(request) != 0){
+            User sender = userService.findById(messageDTO.getIdSender());
+            if(messageDTO.getConversationId() == 0){
+                //nuova conversazione
+                return new MessageDTO().dtoFromDomain(messageService.saveMessage(new Message(0, messageDTO.getMessage(), new Date(), messageDTO.getIdReceiver(), sender, null, null)));
+            }
+            else {
+                //conversazione esistente
+                //trovo il messaggio di riferimento
+                Message conversation = messageService.findById(messageDTO.getConversationId());
+                //creo il messaggio
+                Message mess = new Message(0, messageDTO.getMessage(), new Date(), messageDTO.getIdReceiver(), sender, conversation, null);
+                mess = messageService.saveMessage(mess);
+                return new MessageDTO().dtoFromDomain(mess);
+            }
         }
         else {
-            //conversazione esistente
-            //trovo il messaggio di riferimento
-            Message conversation = messageService.findById(messageDTO.getConversationId());
-            //creo il messaggio
-            Message mess = new Message(0, messageDTO.getMessage(), new Date(), messageDTO.getIdReceiver(), sender, conversation, null);
-            mess = messageService.saveMessage(mess);
-            return new MessageDTO().dtoFromDomain(mess);
+            throw new UserNotAuthorizedException();
         }
     }
 
     @GetMapping(value = "showConversation/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<MessageDTO> showConversation(@PathVariable int userId) throws MessageException{
-        List<Message> messageList = messageService.getMessageByUserId(userId);
-        List<MessageDTO> messageDTOList = new ArrayList<>();
-        for (Message message : messageList){
-            messageDTOList.add(new MessageDTO().dtoFromDomain(message));
+    public List<MessageDTO> showConversation(@PathVariable int userId, HttpServletRequest request, HttpServletResponse response) throws MessageException, UserNotFoundException, UserNotAuthorizedException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            if(idUser == userId){
+                List<Message> messageList = messageService.getMessageByUserId(userId);
+                List<MessageDTO> messageDTOList = new ArrayList<>();
+                for (Message message : messageList){
+                    messageDTOList.add(new MessageDTO().dtoFromDomain(message));
+                }
+                return messageDTOList;
+            }
+            else {
+                throw new UserNotAuthorizedException();
+            }
         }
-        return messageDTOList;
-    }
-
-    @PutMapping(value = "/enablingUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO enablingUser(@PathVariable int id) throws UserNotFoundException {
-        if(applicantService.findByUserId(id) != null){
-            Applicant applicant = applicantService.findByUserId(id);
-            applicant.setEnabling(true);
-            return new ApplicantDTO().dtoFromDomain(applicantService.save(applicant));
+        else {
+            throw new UserNotAuthorizedException();
         }
-        else if (offerorService.findByUserId(id) != null){
-            Offeror offeror = offerorService.findByUserId(id);
-            offeror.setEnabling(true);
-            return new OfferorDTO().dtoFromDomain(offerorService.save(offeror));
-        }
-        return null;
-    }
-
-    @PutMapping(value = "/disablingUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO disablingUser(@PathVariable int id) throws UserNotFoundException{
-        if(applicantService.findByUserId(id) != null){
-            Applicant applicant = applicantService.findByUserId(id);
-            applicant.setEnabling(false);
-            applicantService.save(applicant);
-            return new ApplicantDTO().dtoFromDomain(applicant);
-        }
-        else if (offerorService.findByUserId(id) != null){
-            Offeror offeror = offerorService.findByUserId(id);
-            offeror.setEnabling(false);
-            offerorService.save(offeror);
-            return new OfferorDTO().dtoFromDomain(offeror);
-        }
-        return null;
     }
 
     @DeleteMapping(value = "/delete/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<User> deleteUser(@PathVariable int id) throws UserNotFoundException{
-        userService.deleteUser(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<User> deleteUser(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            if(idUser == id) {
+                userService.deleteUser(id);
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
+            else {
+                throw new UserNotAuthorizedException();
+            }
+        }
+        else {
+            throw new UserNotAuthorizedException();
+        }
     }
 
     @GetMapping(value = "/getById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO showUser(@PathVariable int id) throws UserNotFoundException{
-        if(applicantService.findByUserId(id) != null){
-            return new ApplicantDTO().dtoFromDomain(applicantService.findByUserId(id));
+    public UserDTO showUser(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        if(isRegistered(request) != 0){
+            if(applicantService.findByUserId(id) != null){
+                return new ApplicantDTO().dtoFromDomain(applicantService.findByUserId(id));
+            }
+            else if (offerorService.findByUserId(id) != null){
+                return new OfferorDTO().dtoFromDomain(offerorService.findByUserId(id));
+            }
+            return null;
         }
-        else if (offerorService.findByUserId(id) != null){
-            return new OfferorDTO().dtoFromDomain(offerorService.findByUserId(id));
+        else {
+            throw new UserNotAuthorizedException();
         }
-        return null;
     }
 
-    @GetMapping(value = "/prova", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO prova(){
-        UserDTO userDTO = new UserDTO();
-        userDTO.setName("Pippo");
-        userDTO.setSurname("Male");
-        return userDTO;
+    //CONTROL
+    private int isRegistered(HttpServletRequest request) throws UserNotFoundException{
+        String token = request.getHeader("Authorization").replace("Bearer ","");
+        String email  = jwtProvider.decodeJwt(token).getSubject();
+        User user = userService.isRegistered(email);
+        if(user != null){
+            return user.getId();
+        }
+        return 0;
     }
 
-
-    }
+}

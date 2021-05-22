@@ -13,7 +13,7 @@ import java.util.List;
 public class CommentDTO {
     private int id;
     @NotBlank
-    private String author;
+    private int authorId;
     @NotBlank
     private String comment;
 
@@ -26,9 +26,9 @@ public class CommentDTO {
 
     private int postId;
 
-    public CommentDTO(int id, String author, String comment, Date datetime, List<CommentDTO> commentsOfThread, int postId, int thread) {
+    public CommentDTO(int id, int authorId, String comment, Date datetime, List<CommentDTO> commentsOfThread, int postId, int thread) {
         this.id = id;
-        this.author = author;
+        this.authorId = authorId;
         this.comment = comment;
         this.datetime = datetime;
         this.commentsOfThread = commentsOfThread;
@@ -46,12 +46,12 @@ public class CommentDTO {
         this.id = id;
     }
 
-    public String getAuthor() {
-        return author;
+    public int getAuthorId() {
+        return authorId;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setAuthorId(int authorId) {
+        this.authorId = authorId;
     }
 
     public String getComment() {
@@ -98,7 +98,7 @@ public class CommentDTO {
         CommentDTO commentDTO = new CommentDTO();
         commentDTO.setComment(comment.getComment());
         commentDTO.setDatetime(comment.getDatetime());
-        commentDTO.setAuthor(comment.getAuthor());
+        commentDTO.setAuthorId(comment.getAuthorId());
         commentDTO.setId(comment.getId());
         commentDTO.setPostId(comment.getPost().getId());
         if(comment.getThread() == null){
