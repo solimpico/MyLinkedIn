@@ -10,7 +10,7 @@ public class WebAppConfig implements WebMvcConfigurer{
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         // TODO Auto-generated method stub
-        registry.addMapping("**/").allowedMethods("PUT", "DELETE", "PATCH");
+        registry.addMapping("/*").allowedMethods("GET", "POST", "DELETE", "PUT", "OPTIONS");
     }
 
 }

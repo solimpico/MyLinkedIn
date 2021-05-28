@@ -6,6 +6,7 @@ import it.unisalento.mylinkedin.dto.PostTypeDTO;
 import it.unisalento.mylinkedin.dto.SkilDTO;
 import it.unisalento.mylinkedin.iservices.*;
 import it.unisalento.mylinkedin.restcontrollers.AdminRestController;
+import it.unisalento.mylinkedin.security.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,17 +41,23 @@ public class AdminRestControllerTest {
     IPostService postServiceMock;
     @MockBean
     ISkilService skilServiceMock;
+    @MockBean
+    JwtProvider jwtProvider;
 
     @Autowired
-    private MockMvc mockMvc;
+    MockMvc mockMvc;
     @Autowired
-    private ObjectMapper objMapper;
+    ObjectMapper objMapper;
 
     private PostTypeDTO postTypeDTO;
     private SkilDTO skilDTO;
+    private String jwt;
+
 
     @BeforeEach
     void initTestEnv(){
+        this.jwt = jwtProvider.createJwt("test@gmail.com", "test");
+
         this.postTypeDTO = new PostTypeDTO();
         this.postTypeDTO.setType("Tipo di prova");
         List<String> requiredField = new ArrayList<>();
@@ -65,8 +72,18 @@ public class AdminRestControllerTest {
     @Test
     void confirmRegistrationTest(){
         try{
-            mockMvc.perform(put("/confirmReg/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(put("/confirmReg/{id}").contentType(MediaType.APPLICATION_JSON_VALUE).header("Authorization", jwt)).andExpect(status().isOk());
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void getRetistrationRequestTest(){
+        try{
+            mockMvc.perform(get("/admin/getRegistrationRequest").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+        }
+        catch (Exception e){
             e.printStackTrace();
         }
     }
@@ -74,7 +91,7 @@ public class AdminRestControllerTest {
     @Test
     void addTypeTest(){
         try{
-            mockMvc.perform(post("/admin/addType").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(postTypeDTO))).andExpect(status().isOk());
+            mockMvc.perform(post("/admin/addType").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(postTypeDTO)).header("Authorization", jwt)).andExpect(status().isOk());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -85,7 +102,7 @@ public class AdminRestControllerTest {
     @Test
     void showRequiredFieldTest(){
         try{
-            mockMvc.perform(get("/admin/showExistingRequiredField").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(get("/admin/showExistingRequiredField").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,7 +111,7 @@ public class AdminRestControllerTest {
     @Test
     void showExistingTypeTest(){
         try{
-            mockMvc.perform(get("/admin/showExistingType").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(get("/admin/showExistingType").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,7 +120,7 @@ public class AdminRestControllerTest {
     @Test
     void addSkilTest(){
         try{
-            mockMvc.perform(post("/admin/addSkil").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(skilDTO))).andExpect(status().isOk());
+            mockMvc.perform(post("/admin/addSkil").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(skilDTO))).andExpect(status().isOk());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -114,7 +131,7 @@ public class AdminRestControllerTest {
     @Test
     void deleteSkilTest(){
         try{
-            mockMvc.perform(delete("/admin/deleteSkil/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(delete("/admin/deleteSkil/{id}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -123,7 +140,7 @@ public class AdminRestControllerTest {
     @Test
     void showAllSkilTest(){
         try{
-            mockMvc.perform(get("/admin/showAllSkils").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(get("/admin/showAllSkils").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -132,7 +149,7 @@ public class AdminRestControllerTest {
     @Test
     void deletePostTypeTest(){
         try{
-            mockMvc.perform(delete("/admin/deletePostType/{idPostType}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(delete("/admin/deletePostType/{idPostType}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,7 +158,7 @@ public class AdminRestControllerTest {
     @Test
     void hidenPostTest(){
         try{
-            mockMvc.perform(put("/admin/hidenPost/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(put("/admin/hidenPost/{id}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -150,7 +167,7 @@ public class AdminRestControllerTest {
     @Test
     void setPostVisibileTest(){
         try{
-            mockMvc.perform(put("/admin/setPostVisible/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(put("/admin/setPostVisible/{id}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -159,16 +176,25 @@ public class AdminRestControllerTest {
     @Test
     void showAllPostTest(){
         try{
-            mockMvc.perform(get("/admin/showAllPost").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(get("/admin/showAllPost").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Test
-    void showRegistrationRequestTest(){
+    void enablingUserTest(){
         try{
-            mockMvc.perform(get("/admin/getRegistrationRequest").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(put("/user/enablingUser/{id}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void disablingUserTest(){
+        try{
+            mockMvc.perform(put("/user/disablingUser/{id}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }

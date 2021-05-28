@@ -16,7 +16,7 @@ public class MessageDTO{
     private Date datetime;
     @NotNull
     private int idReceiver;
-    @NotNull
+    //viene avvalorato in automatico tramite JWT
     private int idSender;
 
     private int conversationId;

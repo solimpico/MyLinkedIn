@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository <Message, Integer>{
 
-    @Query("select m from Message m where  m.conversation is null and (m.idReceiver =:idUser) or (m.user =:idUser)")
+    @Query("select m from Message m where m.conversation is null and ((m.idReceiver =:idUser) or (m.user =:idUser))")
     List<Message> findByUserId(@Param("idUser") int idUser);
 }

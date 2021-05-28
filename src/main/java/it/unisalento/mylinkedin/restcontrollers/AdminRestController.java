@@ -45,7 +45,6 @@ public class AdminRestController {
 
     @PutMapping(value = "/confirmReg/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public UserDTO confirmRegistration(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
-
         if(isAdministrator(request)) {
             try {
                 return new ApplicantDTO().dtoFromDomain(applicantService.confirmAndEnable(id));

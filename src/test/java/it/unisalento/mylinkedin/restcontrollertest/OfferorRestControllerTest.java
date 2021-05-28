@@ -7,6 +7,7 @@ import it.unisalento.mylinkedin.dto.PostTypeDTO;
 import it.unisalento.mylinkedin.dto.SkilDTO;
 import it.unisalento.mylinkedin.iservices.*;
 import it.unisalento.mylinkedin.restcontrollers.OfferorRestController;
+import it.unisalento.mylinkedin.security.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +30,10 @@ public class OfferorRestControllerTest {
 
     @MockBean
     IOfferorService offerorService;
+    @MockBean
+    IUserService userService;
+    @MockBean
+    JwtProvider jwtProvider;
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,9 +42,12 @@ public class OfferorRestControllerTest {
     private ObjectMapper objMapper;
 
     private CompanyDTO companyDTO;
+    private String jwt;
 
     @BeforeEach
     void initTestEnv(){
+        this.jwt = jwtProvider.createJwt("admin@gmail.com", "it.unisalento.mylinkedin.domain.Administrator");
+
         this.companyDTO = new CompanyDTO();
         this.companyDTO.setName("test");
         this.companyDTO.setAddress("test");
@@ -52,7 +60,7 @@ public class OfferorRestControllerTest {
     @Test
     void addCompanyTest(){
         try{
-            mockMvc.perform(post("/offeror/addCompany").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(companyDTO))).andExpect(status().isOk());
+            mockMvc.perform(post("/offeror/addCompany").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(companyDTO))).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -61,7 +69,7 @@ public class OfferorRestControllerTest {
     @Test
     void deleteCompanyTest(){
         try{
-            mockMvc.perform(delete("/offeror/deleteCompany/{idCompany}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(delete("/offeror/deleteCompany/{idCompany}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,6 +1,5 @@
 package it.unisalento.mylinkedin.restcontrollers;
 
-import it.unisalento.mylinkedin.dao.UserRepository;
 import it.unisalento.mylinkedin.domain.*;
 import it.unisalento.mylinkedin.dto.*;
 import it.unisalento.mylinkedin.exceptions.*;
@@ -36,7 +35,6 @@ public class UserRestController {
     ISkilService skilService;
     @Autowired
     IPostService postService;
-
     @Autowired
     JwtProvider jwtProvider;
 
@@ -46,32 +44,35 @@ public class UserRestController {
         User user = userService.findByEmail(body.getEmail());
         LoginTokenDTO tokenDTO = new LoginTokenDTO();
         if(user.getClass().equals(Applicant.class)) {
-            if (((Applicant) user).isRegistered() == true && ((Applicant) user).isEnabling() == true) {
-                if (user != null && user.getEmail().equals(body.getEmail()) && user.getPassword().equals(body.getPassword())) {
+            if (((Applicant) user).isRegistered() == true && ((Applicant) user).isEnabling() == true
+                    && user != null && user.getEmail().equals(body.getEmail())
+                    && user.getPassword().equals(body.getPassword())) {
                     //param role
                     String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
                     tokenDTO.setToken(jwt);
+                    tokenDTO.setUserId(user.getId());
                     return ResponseEntity.ok(tokenDTO);
-                }
             }
         }
         else if(user.getClass().equals(Offeror.class)) {
-            if (((Offeror) user).isRegistered() == true && ((Offeror) user).isEnabling() == true) {
-                if (user != null && user.getEmail().equals(body.getEmail()) && user.getPassword().equals(body.getPassword())) {
+            if (((Offeror) user).isRegistered() == true && ((Offeror) user).isEnabling() == true
+                    && user != null && user.getEmail().equals(body.getEmail())
+                    && user.getPassword().equals(body.getPassword())) {
                     //param role
                     String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
                     tokenDTO.setToken(jwt);
+                    tokenDTO.setUserId(user.getId());
                     return ResponseEntity.ok(tokenDTO);
-                }
             }
         }
-            else if(user.getClass().equals(Administrator.class)){
-                if(user != null && user.getEmail().equals(body.getEmail()) && user.getPassword().equals(body.getPassword())) {
+            else if(user.getClass().equals(Administrator.class)
+                && user != null && user.getEmail().equals(body.getEmail())
+                && user.getPassword().equals(body.getPassword())){
                     //param role
                     String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
                     tokenDTO.setToken(jwt);
+                    tokenDTO.setUserId(user.getId());
                     return ResponseEntity.ok(tokenDTO);
-            }
         }
             return ResponseEntity.ok(tokenDTO);
     }
@@ -105,15 +106,38 @@ public class UserRestController {
         return postDTOList;
     }
 
-    @GetMapping(value = "public/getById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/public/getPostById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public PostDTO showPost(@PathVariable  int id) throws PostNotFoundException {
         return new PostDTO().dtoFromDomain(postService.findById(id));
     }
 
+    @PostMapping(value = "/addProfileImage", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO addProfileImage(@RequestBody @Valid ProfileImageDTO profileImageDTO, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException, ImageNotFoundException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+                return new UserDTO().getUserDTOFromDomain(userService.addProfileImage
+                        (new ProfileImage(0, profileImageDTO.getDescription(),
+                                profileImageDTO.getPath(), null), idUser));
+        }
+        else throw new UserNotAuthorizedException();
+    }
+
+    @DeleteMapping(value = "/deleteProfileImage", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO deleteProfileImage(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException, ImageNotFoundException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            return new UserDTO().getUserDTOFromDomain(userService.deleteProfileImage(idUser));
+        }
+        else{
+            throw new UserNotAuthorizedException();
+        }
+    }
+
     @PostMapping(value = "/sendMessage", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public MessageDTO sendMessage(@RequestBody @Valid MessageDTO messageDTO, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, MessageException, UserNotAuthorizedException {
-        if(isRegistered(request) != 0){
-            User sender = userService.findById(messageDTO.getIdSender());
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            User sender = userService.findById(idUser);
             if(messageDTO.getConversationId() == 0){
                 //nuova conversazione
                 return new MessageDTO().dtoFromDomain(messageService.saveMessage(new Message(0, messageDTO.getMessage(), new Date(), messageDTO.getIdReceiver(), sender, null, null)));
@@ -133,28 +157,23 @@ public class UserRestController {
         }
     }
 
-    @GetMapping(value = "showConversation/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<MessageDTO> showConversation(@PathVariable int userId, HttpServletRequest request, HttpServletResponse response) throws MessageException, UserNotFoundException, UserNotAuthorizedException{
+    @GetMapping(value = "/showConversation", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<MessageDTO> showConversation(HttpServletRequest request, HttpServletResponse response) throws MessageException, UserNotFoundException, UserNotAuthorizedException{
         int idUser = isRegistered(request);
-        if(idUser != 0){
-            if(idUser == userId){
-                List<Message> messageList = messageService.getMessageByUserId(userId);
-                List<MessageDTO> messageDTOList = new ArrayList<>();
-                for (Message message : messageList){
-                    messageDTOList.add(new MessageDTO().dtoFromDomain(message));
-                }
-                return messageDTOList;
+        if(idUser != 0) {
+            List<Message> messageList = messageService.getMessageByUserId(idUser);
+            List<MessageDTO> messageDTOList = new ArrayList<>();
+            for (Message message : messageList) {
+                messageDTOList.add(new MessageDTO().dtoFromDomain(message));
             }
+            return messageDTOList;
+        }
             else {
                 throw new UserNotAuthorizedException();
             }
-        }
-        else {
-            throw new UserNotAuthorizedException();
-        }
     }
 
-    @DeleteMapping(value = "/delete/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/deleteUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<User> deleteUser(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
         int idUser = isRegistered(request);
         if(idUser != 0){
@@ -171,7 +190,7 @@ public class UserRestController {
         }
     }
 
-    @GetMapping(value = "/getById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/getUserById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public UserDTO showUser(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
         if(isRegistered(request) != 0){
             if(applicantService.findByUserId(id) != null){

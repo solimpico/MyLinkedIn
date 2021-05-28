@@ -1,7 +1,9 @@
 package it.unisalento.mylinkedin.iservices;
 
 import it.unisalento.mylinkedin.domain.Message;
+import it.unisalento.mylinkedin.domain.ProfileImage;
 import it.unisalento.mylinkedin.domain.User;
+import it.unisalento.mylinkedin.exceptions.ImageNotFoundException;
 import it.unisalento.mylinkedin.exceptions.MessageException;
 import it.unisalento.mylinkedin.exceptions.SavingUserException;
 import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
@@ -14,6 +16,7 @@ public interface IUserService {
     User findById(int id) throws UserNotFoundException;
     List<User> getAll();
     User findByEmail(String email) throws UserNotFoundException;
-    String whoIs(User user) throws  UserNotFoundException;
     User isRegistered(String email) throws UserNotFoundException;
+    User addProfileImage(ProfileImage profileImage, int idUser);
+    User deleteProfileImage(int idImage) throws ImageNotFoundException;
 }

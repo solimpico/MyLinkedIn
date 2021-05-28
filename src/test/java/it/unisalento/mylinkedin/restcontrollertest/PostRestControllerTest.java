@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unisalento.mylinkedin.dto.*;
 import it.unisalento.mylinkedin.iservices.*;
 import it.unisalento.mylinkedin.restcontrollers.PostRestController;
+import it.unisalento.mylinkedin.security.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,8 @@ public class PostRestControllerTest {
     IApplicantService applicantService;
     @MockBean
     IOfferorService offerorService;
+    @MockBean
+    JwtProvider jwtProvider;
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,9 +51,12 @@ public class PostRestControllerTest {
     private PostDTO postDTO;
     private DataDTO dataDTO;
     private CommentDTO commentDTO;
+    private String jwt;
 
     @BeforeEach
     void initTestEnv(){
+        this.jwt = jwtProvider.createJwt("test@gmail.com", "test");
+
         this.dataDTO = new DataDTO();
         this.dataDTO.setData("Data_test");
         this.dataDTO.setField("Field_test");
@@ -72,7 +78,7 @@ public class PostRestControllerTest {
     @Test
     void addPostTest(){
         try{
-            mockMvc.perform(post("/post/addPost").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(postDTO))).andExpect(status().isOk());
+            mockMvc.perform(post("/post/addPost").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(postDTO))).andExpect(status().isOk());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -83,16 +89,7 @@ public class PostRestControllerTest {
     @Test
     void deletePostTest(){
         try{
-            mockMvc.perform(delete("/post/delete/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    void showPostTest(){
-        try{
-            mockMvc.perform(get("/post/getById/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(delete("/post/delete/{id}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -101,7 +98,7 @@ public class PostRestControllerTest {
     @Test
     void addCommentTest(){
         try{
-            mockMvc.perform(post("/post/addComment").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(commentDTO))).andExpect(status().isOk());
+            mockMvc.perform(post("/post/addComment").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(commentDTO))).andExpect(status().isOk());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -112,7 +109,7 @@ public class PostRestControllerTest {
     @Test
     void deleteCommentTest(){
         try{
-            mockMvc.perform(delete("post/removeComment/{id}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(delete("/post/removeComment/{id}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -121,7 +118,7 @@ public class PostRestControllerTest {
     @Test
     void showVisibleByDateTest(){
         try{
-            mockMvc.perform(get("/post/showVisibleByDate").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(get("/post/showVisibleByDate").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }

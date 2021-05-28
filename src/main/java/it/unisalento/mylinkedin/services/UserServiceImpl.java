@@ -1,15 +1,11 @@
 package it.unisalento.mylinkedin.services;
 
-import it.unisalento.mylinkedin.dao.AdministratorRepository;
-import it.unisalento.mylinkedin.dao.ApplicantRepository;
-import it.unisalento.mylinkedin.dao.OfferorRepository;
-import it.unisalento.mylinkedin.dao.UserRepository;
-import it.unisalento.mylinkedin.domain.Administrator;
-import it.unisalento.mylinkedin.domain.Applicant;
-import it.unisalento.mylinkedin.domain.Offeror;
-import it.unisalento.mylinkedin.domain.User;
+import it.unisalento.mylinkedin.dao.*;
+import it.unisalento.mylinkedin.domain.*;
+import it.unisalento.mylinkedin.exceptions.ImageNotFoundException;
 import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
 import it.unisalento.mylinkedin.iservices.IUserService;
+import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,6 +22,8 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    ProfileImageRepository profileImageRepository;
     @Autowired
     ApplicantRepository applicantRepository;
     @Autowired
@@ -61,32 +59,47 @@ public class UserServiceImpl implements IUserService {
         return user;
     }
 
-    @Override
-    public String whoIs(User user) throws UserNotFoundException {
-        String role = "admin";
-        Offeror offeror = offerorRepository.getOne(user.getId());
-        if(offeror != null){
-            role = "offeror";
-            return role;
-        }
-        Applicant applicant = applicantRepository.getOne(user.getId());
-        if(applicant != null){
-            role = "applicant";
-            return role;
-        }
-        Administrator admin = adminRepository.getOne(user.getId());
-        if(admin != null){
-            role = "admin";
-            return role;
-        }
-        throw new UserNotFoundException();
-    }
-
+    @Transactional
     public User isRegistered(String email) throws UserNotFoundException{
         User user = userRepository.findByEmail(email);
         if(user != null){
             return user;
         }
         throw new UserNotFoundException();
+    }
+
+    @Override
+    @Transactional(rollbackOn = ImageNotFoundException.class)
+    public User deleteProfileImage(int idUser) throws ImageNotFoundException {
+        User user = userRepository.getOne(idUser);
+        try {
+            ProfileImage profileImage = profileImageRepository.findById(user.getProfileImage().getId()).orElseThrow(() -> new ImageNotFoundException());
+            profileImage.setUser(null);
+            profileImageRepository.delete(profileImage);
+        }
+        catch (Exception e){
+            throw new ImageNotFoundException();
+        }
+        user.setProfileImage(null);
+        userRepository.save(user);
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public User addProfileImage(ProfileImage newProfileImage, int idUser){
+        User user = userRepository.getOne(idUser);
+        if(user.getProfileImage() != null){
+            ProfileImage image = user.getProfileImage();
+            image.setDescription(newProfileImage.getDescription());
+            image.setProfilePicturePath(newProfileImage.getProfilePicturePath());
+            profileImageRepository.save(image);
+        }
+        else {
+            newProfileImage.setUser(user);
+            user.setProfileImage(newProfileImage);
+            profileImageRepository.save(newProfileImage);
+        }
+        return user;
     }
 }

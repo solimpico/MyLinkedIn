@@ -1,5 +1,8 @@
 package it.unisalento.mylinkedin.dto;
 
+import it.unisalento.mylinkedin.domain.Administrator;
+import it.unisalento.mylinkedin.domain.Applicant;
+import it.unisalento.mylinkedin.domain.Offeror;
 import it.unisalento.mylinkedin.domain.User;
 import it.unisalento.mylinkedin.validators.MatchFieldConstraint;
 
@@ -138,12 +141,20 @@ public class UserDTO{
 
     public UserDTO getUserDTOFromDomain(User user){
         String profileImagePath = null;
+        String role = null;
         if(user.getProfileImage() != null){
             profileImagePath = user.getProfileImage().getProfilePicturePath();
         }
+        if(user.getClass() == Applicant.class && ((Applicant) user).isRegistered()){
+            role = "Applicant";
+        } else if (user.getClass() == Offeror.class && ((Offeror) user).isRegistered()){
+            role = "Offeror";
+        } else if (user.getClass() == Administrator.class){
+            role = "Admin";
+        } else { role = "Not registered";}
 
         return new UserDTO(user.getId(), user.getName(), user.getSurname(), user.getBirthday(),
-                            user.getAge(), "not registered", user.getEmail(), null,
+                            user.getAge(), role, user.getEmail(), null,
                             user.getPassword(), null, profileImagePath);
     }
 }

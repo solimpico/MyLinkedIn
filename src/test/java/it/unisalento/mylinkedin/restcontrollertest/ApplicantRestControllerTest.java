@@ -4,10 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unisalento.mylinkedin.dto.ApplicantDTO;
 import it.unisalento.mylinkedin.dto.PdfDTO;
-import it.unisalento.mylinkedin.dto.PostTypeDTO;
-import it.unisalento.mylinkedin.dto.SkilDTO;
 import it.unisalento.mylinkedin.iservices.*;
 import it.unisalento.mylinkedin.restcontrollers.ApplicantRestController;
+import it.unisalento.mylinkedin.security.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +16,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,18 +30,24 @@ public class ApplicantRestControllerTest {
     IApplicantService applicantService;
     @MockBean
     ISkilService skilService;
+    @MockBean
+    JwtProvider jwtProvider;
+    @MockBean
+    IUserService userService;
 
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objMapper;
 
     private PdfDTO pdfDTO;
     private ApplicantDTO applicantDTO;
+    private String jwt;
 
     @BeforeEach
     void initTestEnv(){
+        this.jwt = jwtProvider.createJwt("test@gmail.com", "test");
+
         this.pdfDTO = new PdfDTO();
         int[] idPostArray = new int[2];
         idPostArray[0] = 1;
@@ -69,7 +71,7 @@ public class ApplicantRestControllerTest {
     @Test
     void savePostsOnPdfTest(){
         try{
-            mockMvc.perform(post("/applicant/saveOnPdf").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(pdfDTO))).andExpect(status().isOk());
+            mockMvc.perform(post("/applicant/saveOnPdf").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(pdfDTO))).andExpect(status().isOk());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -80,7 +82,7 @@ public class ApplicantRestControllerTest {
     @Test
     void ShowVisibleByOfferorTest(){
         try{
-            mockMvc.perform(get("applicant/showVisibleByOfferor").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(get("applicant/showVisibleByOfferor").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -89,7 +91,7 @@ public class ApplicantRestControllerTest {
     @Test
     void ShowVisibleBySkilTest(){
         try{
-            mockMvc.perform(get("applicant/showVisibleBySkil/{idUser}").contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
+            mockMvc.perform(get("applicant/showVisibleBySkil/{idUser}").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,7 +100,7 @@ public class ApplicantRestControllerTest {
     @Test
     void addSkilToApplicantTest(){
         try{
-            mockMvc.perform(post("/applicant/addSkilToApplicant").contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(applicantDTO))).andExpect(status().isOk());
+            mockMvc.perform(post("/applicant/addSkilToApplicant").header("Authorization", jwt).contentType(MediaType.APPLICATION_JSON_VALUE).content(objMapper.writeValueAsString(applicantDTO))).andExpect(status().isOk());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         } catch (Exception e) {
