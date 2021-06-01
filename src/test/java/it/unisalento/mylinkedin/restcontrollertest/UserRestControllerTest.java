@@ -74,6 +74,7 @@ public class UserRestControllerTest {
     private MessageDTO messageDTO;
     private LoginInputDTO loginInputDTO;
     private ProfileImageDTO profileImageDTO;
+    private ProfileImage profileImage;
     private String jwt;
 
     @BeforeEach
@@ -104,11 +105,12 @@ public class UserRestControllerTest {
 
         this.profileImageDTO = new ProfileImageDTO();
         this.profileImageDTO.setPath("Un/path/di/test");
+        this.profileImage = new ProfileImage(0, this.profileImageDTO.getDescription(), this.profileImageDTO.getPath(), this.user);
 
-        this.user = new User(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null);
-        this.applicant = new Applicant(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, true, true, null);
-        this.offeror = new Offeror(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, true, true, null);
-        this.administrator = new Administrator(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null);
+        this.user = new User(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", this.profileImage, null, null, null, null);
+        this.applicant = new Applicant(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", this.profileImage, null, null, null, null, true, true, null);
+        this.offeror = new Offeror(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", this.profileImage, null, null, null, null, true, true, null);
+        this.administrator = new Administrator(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", this.profileImage, null, null, null, null);
 
         List<Data> dataList = new ArrayList<>();
         dataList.add(new Data(1, "test", "test", null, this.post));
@@ -139,7 +141,7 @@ public class UserRestControllerTest {
         when(skilService.findAll()).thenReturn(new ArrayList<Skil>());
         when(postTypeServiceMock.showAllPostType()).thenReturn(new ArrayList<PostType>());
         try{when(userService.updateAge(this.user.getId(), 40)).thenReturn(this.user);} catch (Exception e){}
-
+        when(userService.addProfileImage(this.profileImage, this.user.getId())).thenReturn(this.user);
 
     }
 
