@@ -33,6 +33,7 @@ public class IPostServiceTest {
     IPostService postServiceMock;
 
     private Post post;
+    private Post modifiedPost;
     private Post frontendPost;
     private PostType postType;
     private List<Post> postList;
@@ -66,6 +67,8 @@ public class IPostServiceTest {
         this.post.setPostType(this.postType);
         this.post.setUser(user);
         this.post.setDataList(null);
+        this.modifiedPost = this.post;
+        this.modifiedPost.setVisible(!this.post.isVisible());
 
         this.frontendPost = new Post();
         this.frontendPost.setPublicationDate(new Date());
@@ -76,8 +79,9 @@ public class IPostServiceTest {
 
         try {
             when(postServiceMock.addPost(frontendPost, null, null)).thenReturn(frontendPost);
+            when(postServiceMock.hidenShowPost(this.post.getId())).thenReturn(this.modifiedPost);
         }
-        catch (AddPostException e){
+        catch (Exception e){
             e.printStackTrace();
         }
     }
@@ -159,9 +163,23 @@ public class IPostServiceTest {
     }
 
     @Test
-    void findVisibleByOfferor(){
+    void findVisibleByOfferorTest(){
         assertThat(postService.findVisibleByOfferor()).isNotNull();
         assertThat(postService.findVisibleByOfferor().get(0).isVisible()).isEqualTo(true);
+    }
+
+    @Test
+    void hidenShowPostTest() throws PostNotFoundException{
+        assertThat(postServiceMock.hidenShowPost(this.post.getId())).isNotNull();
+        assertThat(postServiceMock.hidenShowPost(this.post.getId()).isVisible()).isEqualTo(this.modifiedPost.isVisible());
+    }
+
+    @Test
+    void hidenShowPostThrowExTest(){
+        Exception ex = assertThrows(PostNotFoundException.class, () -> {
+            postService.hidenShowPost(0);
+        });
+        assertThat(ex).isNotNull();
     }
 
 

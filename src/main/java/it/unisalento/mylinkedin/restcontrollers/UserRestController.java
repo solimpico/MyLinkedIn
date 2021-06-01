@@ -36,6 +36,8 @@ public class UserRestController {
     @Autowired
     IPostService postService;
     @Autowired
+    IPostTypeService postTypeService;
+    @Autowired
     JwtProvider jwtProvider;
 
 
@@ -79,8 +81,8 @@ public class UserRestController {
 
 
     @PostMapping(value = "/public/registrationRequest", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO registrationRequest(@RequestBody @Valid UserDTO userDTO) throws SavingUserException, SkilNotFoundException {
-        User user = new User(0, userDTO.getName(), userDTO.getSurname(), userDTO.getBirthday(), userDTO.getAge(), userDTO.getEmail(), userDTO.getPassword(), null, null, null, null);
+    public UserDTO registrationRequest(@RequestBody UserDTO userDTO) throws SavingUserException, SkilNotFoundException {
+        User user = new User(0, userDTO.getName(), userDTO.getSurname(), userDTO.getBirthday(), userDTO.getAge(), userDTO.getEmail(), userDTO.getPassword(), null, null, null, null, null);
         if(userDTO.getRole().equalsIgnoreCase("offeror")){
             //salva la richiesta di un offeror
             return new OfferorDTO().dtoFromDomain(offerorService.saveRegistrationtRequestOfferor(user));
@@ -112,12 +114,13 @@ public class UserRestController {
     }
 
     @PostMapping(value = "/addProfileImage", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO addProfileImage(@RequestBody @Valid ProfileImageDTO profileImageDTO, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException, ImageNotFoundException{
+    public ProfileImageDTO addProfileImage(@RequestBody @Valid ProfileImageDTO profileImageDTO, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException, ImageNotFoundException{
         int idUser = isRegistered(request);
         if(idUser != 0){
-                return new UserDTO().getUserDTOFromDomain(userService.addProfileImage
-                        (new ProfileImage(0, profileImageDTO.getDescription(),
-                                profileImageDTO.getPath(), null), idUser));
+            User us = userService.addProfileImage
+                    (new ProfileImage(0, profileImageDTO.getDescription(),
+                            profileImageDTO.getPath(), null), idUser);
+                return new ProfileImageDTO().DTOFromDomain(us.getProfileImage());
         }
         else throw new UserNotAuthorizedException();
     }
@@ -133,14 +136,26 @@ public class UserRestController {
         }
     }
 
+    @GetMapping(value = "/getProfileImage", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ProfileImageDTO getProfileImage(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException, ImageNotFoundException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            return new ProfileImageDTO().DTOFromDomain(userService.findById(idUser).getProfileImage());
+        }
+        else {
+            throw new UserNotAuthorizedException();
+        }
+    }
+
     @PostMapping(value = "/sendMessage", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public MessageDTO sendMessage(@RequestBody @Valid MessageDTO messageDTO, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, MessageException, UserNotAuthorizedException {
         int idUser = isRegistered(request);
         if(idUser != 0){
             User sender = userService.findById(idUser);
+            User receiver = userService.findById(messageDTO.getIdReceiver());
             if(messageDTO.getConversationId() == 0){
                 //nuova conversazione
-                return new MessageDTO().dtoFromDomain(messageService.saveMessage(new Message(0, messageDTO.getMessage(), new Date(), messageDTO.getIdReceiver(), sender, null, null)));
+                return new MessageDTO().dtoFromDomain(messageService.saveMessage(new Message(0, messageDTO.getMessage(), new Date(), messageDTO.getIdReceiver(), sender, null, null)), receiver.getName()+" "+receiver.getSurname());
             }
             else {
                 //conversazione esistente
@@ -149,7 +164,7 @@ public class UserRestController {
                 //creo il messaggio
                 Message mess = new Message(0, messageDTO.getMessage(), new Date(), messageDTO.getIdReceiver(), sender, conversation, null);
                 mess = messageService.saveMessage(mess);
-                return new MessageDTO().dtoFromDomain(mess);
+                return new MessageDTO().dtoFromDomain(mess, receiver.getName()+" "+receiver.getSurname());
             }
         }
         else {
@@ -164,7 +179,8 @@ public class UserRestController {
             List<Message> messageList = messageService.getMessageByUserId(idUser);
             List<MessageDTO> messageDTOList = new ArrayList<>();
             for (Message message : messageList) {
-                messageDTOList.add(new MessageDTO().dtoFromDomain(message));
+                User receiver = userService.findById(message.getIdReceiver());
+                messageDTOList.add(new MessageDTO().dtoFromDomain(message, receiver.getName()+" "+receiver.getSurname()));
             }
             return messageDTOList;
         }
@@ -190,16 +206,76 @@ public class UserRestController {
         }
     }
 
-    @GetMapping(value = "/getUserById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "public/getUserById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public UserDTO showUser(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+
+            User user = userService.findById(id);
+            if(user.getClass() == Applicant.class){
+                return new ApplicantDTO().dtoFromDomain((Applicant) user);
+            }
+            else if (user.getClass() == Offeror.class){
+                return new OfferorDTO().dtoFromDomain((Offeror) user);
+            } else if ( user.getClass() == Administrator.class){
+                return new UserDTO().getUserDTOFromDomain(user);
+            } else {
+                throw new UserNotFoundException();
+            }
+    }
+
+    @PutMapping(value = "/updateAge/{age}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO updateAgeUser(@PathVariable int age, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            return new UserDTO().getUserDTOFromDomain(userService.updateAge(idUser, age));
+        }
+        else { throw new UserNotAuthorizedException();}
+    }
+
+    @GetMapping(value = "/showExistingType", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<PostTypeDTO> showType(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
         if(isRegistered(request) != 0){
-            if(applicantService.findByUserId(id) != null){
-                return new ApplicantDTO().dtoFromDomain(applicantService.findByUserId(id));
+            List<PostTypeDTO> postTypeDTOList = new ArrayList<>();
+            List<PostType> postTypeList =  postTypeService.showAllPostType();
+            for (PostType type : postTypeList){
+                postTypeDTOList.add(new PostTypeDTO().dtoFromDomain(type));
             }
-            else if (offerorService.findByUserId(id) != null){
-                return new OfferorDTO().dtoFromDomain(offerorService.findByUserId(id));
+            return postTypeDTOList;
+        }
+        else{
+            throw new UserNotAuthorizedException();
+        }
+    }
+
+    @GetMapping(value = "/showAllSkils", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<SkilDTO> showAllSkil(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        if(isRegistered(request) != 0){
+            List<Skil> skilList = skilService.findAll();
+            List<SkilDTO> skilDTOList = new ArrayList<>();
+            for (Skil skil : skilList){
+                skilDTOList.add(new SkilDTO().dtoFromDomain(skil));
             }
-            return null;
+            return skilDTOList;
+        }
+        else {
+            throw new UserNotAuthorizedException();
+        }
+    }
+
+    @GetMapping(value="/getAllUsers", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<UserDTO> getAllUsers(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        if(isRegistered(request) != 0){
+            List<User> userList = userService.getAll();
+            List<UserDTO> userDTOList = new ArrayList<>();
+            for(User user : userList){
+                if(user.getClass() == Applicant.class) {
+                    userDTOList.add(new ApplicantDTO().dtoFromDomain((Applicant) user));
+                } else if (user.getClass() == Offeror.class){
+                    userDTOList.add(new OfferorDTO().dtoFromDomain((Offeror) user));
+                } else {
+                    userDTOList.add(new UserDTO().getUserDTOFromDomain(user));
+                }
+            }
+            return userDTOList;
         }
         else {
             throw new UserNotAuthorizedException();

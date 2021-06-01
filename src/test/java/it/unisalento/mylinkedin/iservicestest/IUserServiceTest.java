@@ -1,7 +1,9 @@
 package it.unisalento.mylinkedin.iservicestest;
 
 import it.unisalento.mylinkedin.domain.Applicant;
+import it.unisalento.mylinkedin.domain.ProfileImage;
 import it.unisalento.mylinkedin.domain.User;
+import it.unisalento.mylinkedin.exceptions.ImageNotFoundException;
 import it.unisalento.mylinkedin.exceptions.SavingUserException;
 import it.unisalento.mylinkedin.exceptions.UserNotFoundException;
 import it.unisalento.mylinkedin.iservices.IApplicantService;
@@ -29,9 +31,16 @@ public class IUserServiceTest {
 
     private User user;
     private User frontedUser;
+    private ProfileImage profileImage;
 
     @BeforeEach
     void initTestEnv(){
+        this.profileImage = new ProfileImage();
+        this.profileImage.setId(0);
+        this.profileImage.setUser(this.user);
+        this.profileImage.setProfilePicturePath("path/di/test");
+        this.profileImage.setDescription("test");
+
         this.user = new User();
         this.user.setId(1);
         this.user.setName("Mattia");
@@ -43,7 +52,7 @@ public class IUserServiceTest {
         this.user.setMessageList(null);
         this.user.setPostList(null);
         this.user.setNotificationList(null);
-        this.user.setProfileImage(null);
+        this.user.setProfileImage(this.profileImage);
 
         this.frontedUser = new User();
         this.frontedUser.setName("Mattia");
@@ -58,6 +67,9 @@ public class IUserServiceTest {
         this.frontedUser.setProfileImage(null);
 
         userServiceMock = mock(IUserService.class);
+
+        try{when(userServiceMock.updateAge(this.user.getId(), 1000)).thenReturn(this.user);} catch (Exception e){}
+        when(userServiceMock.addProfileImage(this.profileImage, this.user.getId())).thenReturn(this.user);
     }
 
     @Test
@@ -104,6 +116,45 @@ public class IUserServiceTest {
     void findByEmailThrowExTest(){
         Exception ex = assertThrows(UserNotFoundException.class, () -> {
             userService.findByEmail("notvalidEmail");
+        });
+        assertThat(ex).isNotNull();
+    }
+
+    @Test
+    void deleteProfileImageTest(){
+        try {
+            doNothing().when(userServiceMock).deleteProfileImage(isA(Integer.class));
+            userServiceMock.deleteProfileImage(this.profileImage.getId());
+            verify(userServiceMock, times(1)).deleteProfileImage(this.profileImage.getId());
+        } catch (Exception e){}
+    }
+
+    @Test
+    void deleteProfileImageThrowExTest(){
+        Exception ex = assertThrows(ImageNotFoundException.class, () -> {
+            userService.deleteProfileImage(0);
+        });
+        assertThat(ex).isNotNull();
+    }
+
+    @Test
+    void addProfileImageTest(){
+        assertThat(userServiceMock.addProfileImage(this.profileImage, this.user.getId())).isNotNull();
+        assertThat(userServiceMock.addProfileImage(this.profileImage, this.user.getId()).getId()).isEqualTo(this.user.getId());
+        assertThat(userServiceMock.addProfileImage(this.profileImage, this.user.getId()).getProfileImage()).isEqualTo(this.profileImage);
+    }
+
+    @Test
+    void updateAge(){
+        try {
+            assertThat(userServiceMock.updateAge(this.user.getId(), 1000)).isNotNull();
+        } catch (Exception e){}
+    }
+
+    @Test
+    void updateAgeThrowExTest(){
+        Exception ex = assertThrows(UserNotFoundException.class, () -> {
+            userService.updateAge(0, 100);
         });
         assertThat(ex).isNotNull();
     }

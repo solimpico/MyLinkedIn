@@ -18,4 +18,5 @@ public interface IPostService {
     List<Post> findVisibleByDate();
     List<Post> findVisibleBySkil(int idSkil);
     List<Post> findVisibleByOfferor();
+    Post hidenShowPost(int id) throws PostNotFoundException;
 }

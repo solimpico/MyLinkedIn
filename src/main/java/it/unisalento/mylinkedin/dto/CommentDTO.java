@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 public class CommentDTO {
     private int id;
-    @NotBlank
+    private String author;
     private int authorId;
     @NotBlank
     private String comment;
@@ -20,13 +20,14 @@ public class CommentDTO {
     private Date datetime;
 
     //riferimento al comment parent
+    @NotNull
     private int thread;
 
     private List<CommentDTO> commentsOfThread;
-
+    @NotNull
     private int postId;
 
-    public CommentDTO(int id, int authorId, String comment, Date datetime, List<CommentDTO> commentsOfThread, int postId, int thread) {
+    public CommentDTO(int id, int authorId, String comment, Date datetime, List<CommentDTO> commentsOfThread, int postId, int thread, String author) {
         this.id = id;
         this.authorId = authorId;
         this.comment = comment;
@@ -34,6 +35,7 @@ public class CommentDTO {
         this.commentsOfThread = commentsOfThread;
         this.postId = postId;
         this.thread = thread;
+        this.author = author;
     }
 
     public CommentDTO(){}
@@ -94,13 +96,22 @@ public class CommentDTO {
         this.thread = thread;
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
     public CommentDTO dtoFromDomain(Comment comment){
         CommentDTO commentDTO = new CommentDTO();
         commentDTO.setComment(comment.getComment());
         commentDTO.setDatetime(comment.getDatetime());
-        commentDTO.setAuthorId(comment.getAuthorId());
+        commentDTO.setAuthorId(comment.getUser().getId());
         commentDTO.setId(comment.getId());
         commentDTO.setPostId(comment.getPost().getId());
+        commentDTO.setAuthor(comment.getUser().getName()+" "+comment.getUser().getSurname());
         if(comment.getThread() == null){
             commentDTO.setThread(0);
         }

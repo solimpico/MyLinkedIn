@@ -37,12 +37,19 @@ public class ICommentServiceTest {
 
     private Comment comment;
     private Comment frontendComment;
+    private User user;
     private Post post;
     private int idPost;
     private int idComment;
 
     @BeforeEach
     void initTestEnv(){
+        this.user = new User();
+        this.user.setId(0);
+        this.user.setName("Prova");
+        this.user.setSurname("Prova");
+        this.user.setEmail("Prova");
+
         this.idPost = 1;
 
         this.idComment = 1;
@@ -53,7 +60,7 @@ public class ICommentServiceTest {
         this.frontendComment.setComment("Prova");
         this.frontendComment.setCommentList(null);
         this.frontendComment.setThread(null);
-        this.frontendComment.setAuthorId(100);
+        this.frontendComment.setUser(this.user);
         this.frontendComment.setDatetime(new Date());
         this.frontendComment.setPost(this.post);
 
@@ -62,7 +69,7 @@ public class ICommentServiceTest {
         this.comment.setComment("Prima thrad del post 1");
         this.comment.setCommentList(null);
         this.comment.setThread(null);
-        this.comment.setAuthorId(1);
+        this.comment.setUser(this.user);
         this.comment.setDatetime(new Date());
         this.comment.setPost(this.post);
 
@@ -102,9 +109,7 @@ public class ICommentServiceTest {
             assertThat(commentService.findById(this.comment.getId())).isNotNull();
             assertThat(commentService.findById(this.comment.getId()).getComment()).isEqualTo(this.comment.getComment());
         }
-        catch (CommentNotFoundException e){
-            e.printStackTrace();
-        }
+        catch (CommentNotFoundException e){}
     }
 
     @Test

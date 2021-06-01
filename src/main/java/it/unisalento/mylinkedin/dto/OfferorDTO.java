@@ -1,31 +1,30 @@
 package it.unisalento.mylinkedin.dto;
 
-import it.unisalento.mylinkedin.domain.Applicant;
 import it.unisalento.mylinkedin.domain.Offeror;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class OfferorDTO extends UserDTO{
-    boolean registerd;
+    boolean registered;
     boolean enabling;
     CompanyDTO companyDTO;
 
     public OfferorDTO(){}
 
-    public OfferorDTO(int id, String name, String surname, String birthday, int age, String role, String email, String emailToVerify, String password, String passwordToVerify, String profileImagePath, boolean registerd, boolean enabling, CompanyDTO companyDTO) {
+    public OfferorDTO(int id, String name, String surname, String birthday, int age, String role, String email, String emailToVerify, String password, String passwordToVerify, String profileImagePath, boolean registered, boolean enabling, CompanyDTO companyDTO) {
         super(id, name, surname, birthday, age, role, email, emailToVerify, password, passwordToVerify, profileImagePath);
-        this.registerd = registerd;
+        this.registered = registered;
         this.enabling = enabling;
         this.companyDTO = companyDTO;
     }
 
-    public boolean isRegisterd() {
-        return registerd;
+    public boolean isRegistered() {
+        return registered;
     }
 
-    public void setRegisterd(boolean registerd) {
-        this.registerd = registerd;
+    public void setRegistered(boolean registered) {
+        this.registered = registered;
     }
 
     public boolean isEnabling() {

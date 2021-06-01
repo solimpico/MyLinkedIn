@@ -16,8 +16,10 @@ public class MessageDTO{
     private Date datetime;
     @NotNull
     private int idReceiver;
+    private String nameReceiver;
     //viene avvalorato in automatico tramite JWT
     private int idSender;
+    private String nameSender;
 
     private int conversationId;
 
@@ -25,7 +27,7 @@ public class MessageDTO{
 
     public MessageDTO(){}
 
-    public MessageDTO(int id, String message, Date datetime, int idReceiver, int idSender, int conversationId, List<MessageDTO> messageDTOList) {
+    public MessageDTO(int id, String message, Date datetime, int idReceiver, int idSender, int conversationId, List<MessageDTO> messageDTOList, String nameReceiver, String nameSender) {
         this.id = id;
         this.message = message;
         this.datetime = datetime;
@@ -33,6 +35,8 @@ public class MessageDTO{
         this.idSender = idSender;
         this.conversationId = conversationId;
         this.messageDTOList = messageDTOList;
+        this.nameReceiver = nameReceiver;
+        this.nameSender = nameSender;
     }
 
     public int getId() {
@@ -91,13 +95,31 @@ public class MessageDTO{
         this.messageDTOList = messageDTOList;
     }
 
-    public MessageDTO dtoFromDomain(Message message){
+    public String getNameReceiver() {
+        return nameReceiver;
+    }
+
+    public void setNameReceiver(String nameReceiver) {
+        this.nameReceiver = nameReceiver;
+    }
+
+    public String getNameSender() {
+        return nameSender;
+    }
+
+    public void setNameSender(String nameSender) {
+        this.nameSender = nameSender;
+    }
+
+    public MessageDTO dtoFromDomain(Message message, String nameReceiver){
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(message.getId());
         messageDTO.setMessage(message.getMessage());
         messageDTO.setDatetime(message.getDatetime());
         messageDTO.setIdReceiver(message.getIdReceiver());
         messageDTO.setIdSender(message.getUser().getId());
+        messageDTO.setNameSender(message.getUser().getName() + " " + message.getUser().getSurname());
+        messageDTO.setNameReceiver(nameReceiver);
         if(message.getConversation() == null){
             //Nuova conversazione
             messageDTO.setConversationId(0);
@@ -109,8 +131,12 @@ public class MessageDTO{
         List<MessageDTO> messageOfConversation = new ArrayList<>();
         if(message.getMessageList() != null){
             for (Message mess : message.getMessageList()){
+                String receiver = "";
+                if(mess.getUser().getId() == message.getId()){
+                    receiver = nameReceiver;
+                } else {receiver = message.getUser().getName()+" "+message.getUser().getSurname();}
                 MessageDTO messDTO = new MessageDTO();
-                messageOfConversation.add(messDTO.dtoFromDomain(mess));
+                messageOfConversation.add(messDTO.dtoFromDomain(mess, receiver));
             }
         }
         messageDTO.setMessageDTOList(messageOfConversation);

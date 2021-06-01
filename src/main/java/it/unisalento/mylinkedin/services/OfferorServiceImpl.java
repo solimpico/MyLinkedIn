@@ -30,7 +30,7 @@ public class OfferorServiceImpl implements IOfferorService {
         try{
             return offerorRepository.save(new Offeror(user.getId(), user.getName(), user.getSurname(),
                     user.getBirthday(), user.getAge(), user.getEmail(), user.getPassword(), user.getProfileImage(),
-                    user.getNotificationList(), user.getMessageList(), user.getPostList(), false, false, null));
+                    user.getNotificationList(), user.getMessageList(), user.getPostList(), user.getCommentList(),false, false, null));
 
         }
         catch (Exception e){

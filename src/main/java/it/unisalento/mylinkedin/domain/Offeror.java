@@ -17,8 +17,8 @@ public class Offeror extends User{
 
     public Offeror() {}
 
-    public Offeror(int id, String name, String surname, String birthday, int age, String email, String password, ProfileImage profileImage, List<Notification> notificationList, List<Message> messageList, List<Post> postList, boolean registered, boolean enabling, Company company) {
-        super(id, name, surname, birthday, age, email, password, profileImage, notificationList, messageList, postList);
+    public Offeror(int id, String name, String surname, String birthday, int age, String email, String password, ProfileImage profileImage, List<Notification> notificationList, List<Message> messageList, List<Post> postList,List<Comment> commentList, boolean registered, boolean enabling, Company company) {
+        super(id, name, surname, birthday, age, email, password, profileImage, notificationList, messageList, postList, commentList);
         this.registered = registered;
         this.enabling = enabling;
         this.company = company;

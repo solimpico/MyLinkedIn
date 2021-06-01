@@ -19,4 +19,5 @@ public interface IUserService {
     User isRegistered(String email) throws UserNotFoundException;
     User addProfileImage(ProfileImage profileImage, int idUser);
     User deleteProfileImage(int idImage) throws ImageNotFoundException;
+    User updateAge(int idUser, int age) throws UserNotFoundException;
 }

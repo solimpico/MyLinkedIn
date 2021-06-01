@@ -40,7 +40,6 @@ public class AdminRestController {
     @Autowired
     JwtProvider jwtProvider;
 
-
     //GESTIONE UTENTI ---------------------------------------------------------
 
     @PutMapping(value = "/confirmReg/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -59,6 +58,32 @@ public class AdminRestController {
             throw new UserNotAuthorizedException();
         }
         return null;
+    }
+
+    @DeleteMapping(value = "/deleteRegistrationRequest/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public void deleteRegistration(@PathVariable int userId, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        if(isAdministrator(request)){
+            User user = userService.findById(userId);
+            //Un admin non può eliminare un utente già registrato
+            if(user.getClass() == Applicant.class) {
+                if (!((Applicant) user).isRegistered()) {
+                    userService.deleteUser(user.getId());
+                } else {
+                    throw new UserNotAuthorizedException();
+                }
+            }
+            else if(user.getClass() == Offeror.class){
+                if (!((Offeror) user).isRegistered()) {
+                    userService.deleteUser(user.getId());
+                } else {
+                    throw new UserNotAuthorizedException();
+                }
+            }
+            else {
+                throw new UserNotAuthorizedException();
+            }
+        }
+        else {throw new UserNotAuthorizedException();}
     }
 
     @GetMapping(value = "/getRegistrationRequest", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -108,21 +133,6 @@ public class AdminRestController {
         }
     }
 
-    @GetMapping(value = "/showExistingType", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<PostTypeDTO> showType(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
-        if(isAdministrator(request)){
-            List<PostTypeDTO> postTypeDTOList = new ArrayList<>();
-            List<PostType> postTypeList =  postTypeService.showAllPostType();
-            for (PostType type : postTypeList){
-                postTypeDTOList.add(new PostTypeDTO().dtoFromDomain(type));
-            }
-            return postTypeDTOList;
-        }
-        else{
-            throw new UserNotAuthorizedException();
-        }
-    }
-
     @PostMapping(value = "/addSkil", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public SkilDTO addSkil(@RequestBody @Valid SkilDTO skilDTO, HttpServletRequest request, HttpServletResponse response) throws SkilException, UserNotAuthorizedException, UserNotFoundException{
         if(isAdministrator(request)){
@@ -144,21 +154,6 @@ public class AdminRestController {
         }
     }
 
-    @GetMapping(value = "/showAllSkils", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<SkilDTO> showAllSkil(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
-        if(isAdministrator(request)){
-            List<Skil> skilList = skilService.findAll();
-            List<SkilDTO> skilDTOList = new ArrayList<>();
-            for (Skil skil : skilList){
-                skilDTOList.add(new SkilDTO().dtoFromDomain(skil));
-            }
-            return skilDTOList;
-        }
-        else {
-            throw new UserNotAuthorizedException();
-        }
-    }
-
     @DeleteMapping(value = "/deletePostType/{idPostType}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PostType> deletePostType(@PathVariable int idPostType, HttpServletRequest request, HttpServletResponse response) throws PostException, UserNotAuthorizedException, UserNotFoundException{
         if(isAdministrator(request)){
@@ -170,29 +165,23 @@ public class AdminRestController {
         }
     }
 
-    //GESTION POST ------------------------------------------------------------------------------
-    @PutMapping(value = "/hidenPost/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public PostDTO hidenPost(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws PostNotFoundException, UserNotFoundException, UserNotAuthorizedException {
+    @GetMapping(value = "getSkilById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public SkilDTO getSkilById(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws SkilNotFoundException, UserNotAuthorizedException, UserNotFoundException{
         if(isAdministrator(request)){
-            Post postVisible = postService.findById(id);
-            postVisible.setVisible(false);
-            PostDTO postDTO = new PostDTO();
-            return postDTO.dtoFromDomain(postVisible);
-        }
-        else{
+            return new SkilDTO().dtoFromDomain(skilService.findById(id));
+        } else {
             throw new UserNotAuthorizedException();
         }
     }
 
-    @PutMapping(value = "/setPostVisible/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public PostDTO makeVisiblePost(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws PostNotFoundException, UserNotFoundException, UserNotAuthorizedException{
+    //GESTION POST ------------------------------------------------------------------------------
+    @PutMapping(value = "/hidenShowPost/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public PostDTO hidenPost(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws PostNotFoundException, UserNotFoundException, UserNotAuthorizedException {
         if(isAdministrator(request)){
-            Post postVisible = postService.findById(id);
-            postVisible.setVisible(true);
-            PostDTO postDTO = new PostDTO();
-            return postDTO.dtoFromDomain(postVisible);
+            Post post = postService.hidenShowPost(id);
+            return new PostDTO().dtoFromDomain(post);
         }
-        else {
+        else{
             throw new UserNotAuthorizedException();
         }
     }
@@ -213,40 +202,19 @@ public class AdminRestController {
         }
     }
 
-    @PutMapping(value = "/enablingUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO enablingUser(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException {
+    @PutMapping(value = "/enableDisableUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO enableDisableUser(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException {
         if(isAdministrator(request)){
-            if(applicantService.findByUserId(id) != null){
-                Applicant applicant = applicantService.findByUserId(id);
-                applicant.setEnabling(true);
+            User user = userService.findById(id);
+            if(user.getClass() == Applicant.class){
+                Applicant applicant = ((Applicant) user);
+                applicant.setEnabling(!applicant.isEnabling());
                 return new ApplicantDTO().dtoFromDomain(applicantService.save(applicant));
             }
-            else if (offerorService.findByUserId(id) != null){
-                Offeror offeror = offerorService.findByUserId(id);
-                offeror.setEnabling(true);
+            else if (user.getClass() == Offeror.class){
+                Offeror offeror = ((Offeror) user);
+                offeror.setEnabling(!offeror.isEnabling());
                 return new OfferorDTO().dtoFromDomain(offerorService.save(offeror));
-            }
-            return null;
-        }
-        else {
-            throw new UserNotAuthorizedException();
-        }
-    }
-
-    @PutMapping(value = "/disablingUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserDTO disablingUser(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
-        if(isAdministrator(request)){
-            if(applicantService.findByUserId(id) != null){
-                Applicant applicant = applicantService.findByUserId(id);
-                applicant.setEnabling(false);
-                applicantService.save(applicant);
-                return new ApplicantDTO().dtoFromDomain(applicant);
-            }
-            else if (offerorService.findByUserId(id) != null){
-                Offeror offeror = offerorService.findByUserId(id);
-                offeror.setEnabling(false);
-                offerorService.save(offeror);
-                return new OfferorDTO().dtoFromDomain(offeror);
             }
             return null;
         }

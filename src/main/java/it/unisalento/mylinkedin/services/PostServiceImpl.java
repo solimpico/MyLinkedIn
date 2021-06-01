@@ -120,6 +120,18 @@ public class PostServiceImpl implements IPostService {
         }
         return postList;
     }
+
+    @Override
+    @Transactional(rollbackOn = PostNotFoundException.class)
+    public Post hidenShowPost(int id) throws PostNotFoundException{
+        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException());
+        if(post.isVisible()){
+            post.setVisible(false);
+        } else {
+            post.setVisible(true);
+        }
+        return postRepository.save(post);
+    }
 }
 
 /*

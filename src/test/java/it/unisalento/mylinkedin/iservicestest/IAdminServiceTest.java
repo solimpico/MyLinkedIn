@@ -100,9 +100,7 @@ public class IAdminServiceTest {
             assertThat(adminService.findByUserId(this.administrator.getId())).isNotNull();
             assertThat(adminService.findByUserId(this.administrator.getId()).getName()).isEqualTo(administrator.getName());
         }
-        catch (UserNotFoundException e){
-            e.printStackTrace();
-        }
+        catch (UserNotFoundException e){}
     }
 
     @Test

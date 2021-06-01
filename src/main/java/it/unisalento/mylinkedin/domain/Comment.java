@@ -11,12 +11,13 @@ public class Comment {
     @Column(unique = true)
     private int id;
 
-    @Column(nullable = false)
-    private int authorId;
     @Column(nullable = false, length = 500)
     private String comment;
     @Column(nullable = false)
     private Date datetime;
+
+    @ManyToOne(optional = false)
+    User user;
 
     //parent
     @ManyToOne
@@ -31,9 +32,9 @@ public class Comment {
 
     public Comment(){}
 
-    public Comment(int id, int authorId, String comment, Date datetime, Comment thread, List<Comment> commentList, Post post) {
+    public Comment(int id, User user, String comment, Date datetime, Comment thread, List<Comment> commentList, Post post) {
         this.id = id;
-        this.authorId = authorId;
+        this.user = user;
         this.comment = comment;
         this.datetime = datetime;
         this.thread = thread;
@@ -49,12 +50,12 @@ public class Comment {
         this.id = id;
     }
 
-    public int getAuthorId() {
-        return authorId;
+    public User getUser() {
+        return user;
     }
 
-    public void setAuthorId(int authorId) {
-        this.authorId = authorId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getComment() {

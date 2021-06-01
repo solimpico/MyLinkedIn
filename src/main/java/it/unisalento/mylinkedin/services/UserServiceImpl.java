@@ -102,4 +102,13 @@ public class UserServiceImpl implements IUserService {
         }
         return user;
     }
+
+    @Transactional(rollbackOn = UserNotFoundException.class)
+    @Override
+    public User updateAge(int idUser, int age) throws UserNotFoundException{
+        User user = userRepository.findById(idUser).orElseThrow(() -> new UserNotFoundException());
+        user.setAge(age);
+        return userRepository.save(user);
+    }
+
 }

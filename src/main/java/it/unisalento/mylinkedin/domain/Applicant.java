@@ -20,8 +20,8 @@ public class Applicant extends User{
 
     public Applicant(){}
 
-    public Applicant(int id, String name, String surname, String birthday, int age, String email, String password, ProfileImage profileImage, List<Notification> notificationList, List<Message> messageList, List<Post> postList, boolean registered, boolean enabling, List<SkilApplicant> skilApplicantList) {
-        super(id, name, surname, birthday, age, email, password, profileImage, notificationList, messageList, postList);
+    public Applicant(int id, String name, String surname, String birthday, int age, String email, String password, ProfileImage profileImage, List<Notification> notificationList, List<Message> messageList, List<Post> postList, List<Comment> comentList, boolean registered, boolean enabling, List<SkilApplicant> skilApplicantList) {
+        super(id, name, surname, birthday, age, email, password, profileImage, notificationList, messageList, postList, comentList);
         this.registered = registered;
         this.enabling = enabling;
         this.skilApplicantList = skilApplicantList;

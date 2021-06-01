@@ -14,6 +14,7 @@ public class PostDTO{
     private boolean visible;
     @NotNull
     private int userId;
+    private String nameAndSurnameUser;
     @NotNull
     private String type;
     @NotNull
@@ -22,11 +23,12 @@ public class PostDTO{
 
     public PostDTO(){}
 
-    public PostDTO(int id, Date datetime, boolean visible, int userId, String type, List<DataDTO> dataDTOList, List<CommentDTO> CommentDTOList) {
+    public PostDTO(int id, Date datetime, boolean visible, int userId, String nameAndSurnameUser, String type, List<DataDTO> dataDTOList, List<CommentDTO> CommentDTOList) {
         this.id = id;
         this.datetime = datetime;
         this.visible = visible;
         this.userId = userId;
+        this.nameAndSurnameUser = nameAndSurnameUser;
         this.type = type;
         this.dataDTOList = dataDTOList;
         this.CommentDTOList = CommentDTOList;
@@ -64,6 +66,14 @@ public class PostDTO{
         this.userId = userId;
     }
 
+    public String getNameAndSurnameUser() {
+        return nameAndSurnameUser;
+    }
+
+    public void setNameAndSurnameUser(String nameAndSurnameUser) {
+        this.nameAndSurnameUser = nameAndSurnameUser;
+    }
+
     public String getType() {
         return type;
     }
@@ -94,6 +104,7 @@ public class PostDTO{
         postDTO.setId(post.getId());
         postDTO.setVisible(post.isVisible());
         postDTO.setUserId(post.getUser().getId());
+        postDTO.setNameAndSurnameUser(post.getUser().getName() + ' ' +post.getUser().getSurname());
         postDTO.setType(post.getPostType().getType());
 
         List<CommentDTO> commentDTOList = new ArrayList<>();
@@ -109,15 +120,19 @@ public class PostDTO{
         postDTO.setCommentDTOList(commentDTOList);
 
         List<DataDTO> dataDTOList = new ArrayList<DataDTO>();
-        for (Data data : post.getDataList()){
-            DataDTO dataDTO = new DataDTO();
-            dataDTOList.add(dataDTO.dtoFromDoman(data));
+        if(post.getDataList() != null) {
+            for (Data data : post.getDataList()) {
+                DataDTO dataDTO = new DataDTO();
+                dataDTOList.add(dataDTO.dtoFromDoman(data));
+            }
         }
-        for (SkilPost skilPost : post.getSkilPostList()) {
-            Skil skil = skilPost.getSkil();
-            DataDTO dataDTO = new DataDTO(skil.getId(), "Skil", skil.getSkilName(), null);
-            dataDTOList.add(dataDTO);
+        if(post.getSkilPostList() != null) {
+            for (SkilPost skilPost : post.getSkilPostList()) {
+                Skil skil = skilPost.getSkil();
+                DataDTO dataDTO = new DataDTO(skil.getId(), "Skil", skil.getSkilName(), null);
+                dataDTOList.add(dataDTO);
 
+            }
         }
         postDTO.setDataDTOList(dataDTOList);
 
