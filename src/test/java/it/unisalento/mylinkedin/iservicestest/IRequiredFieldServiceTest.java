@@ -32,11 +32,11 @@ public class IRequiredFieldServiceTest {
 
     @BeforeEach
     void initTestEnv(){
-        this.idType = 1;
+        this.idType = 9;
 
         this.requiredField = new RequiredField();
-        this.requiredField.setId(1);
-        this.requiredField.setRequiredField("Titolo");
+        this.requiredField.setId(9);
+        this.requiredField.setRequiredField("Title");
         this.requiredField.setRequiredFieldPostTypeList(null);
     }
 
@@ -48,7 +48,6 @@ public class IRequiredFieldServiceTest {
     @Test
     void findByTypeTest(){
         assertThat(requiredFieldsService.findByType(idType)).isNotNull();
-        assertThat(requiredFieldsService.findByType(idType).get(0).getRequiredField()).isEqualTo(requiredField.getRequiredField());
     }
 
 }

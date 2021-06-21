@@ -4,6 +4,7 @@ import it.unisalento.mylinkedin.dao.OfferorRepository;
 import it.unisalento.mylinkedin.domain.*;
 import it.unisalento.mylinkedin.dto.CommentDTO;
 import it.unisalento.mylinkedin.dto.DataDTO;
+import it.unisalento.mylinkedin.dto.PositionDTO;
 import it.unisalento.mylinkedin.dto.PostDTO;
 import it.unisalento.mylinkedin.exceptions.*;
 import it.unisalento.mylinkedin.iservices.*;
@@ -51,7 +52,7 @@ public class PostRestController {
             boolean enable = false;
             User user = userService.findById(postDTO.getUserId());
             if (user.getClass() == Applicant.class && ((Applicant) user).isRegistered() && ((Applicant) user).isEnabling()) {
-                Post post = new Post(postDTO.getId(), true, new Date(), userService.findById(postDTO.getUserId()), null, null, postTypeService.findByName(postDTO.getType()), null, null);
+                Post post = new Post(postDTO.getId(), true, new Date(), userService.findById(postDTO.getUserId()),null, null, postTypeService.findByName(postDTO.getType()), null, null);
                 List<Data> dataList = new ArrayList<>();
                 List<String> skilList = new ArrayList<>();
                 //avvaloro dataList e/o skilList
@@ -67,7 +68,7 @@ public class PostRestController {
 
                 return postDTO.dtoFromDomain(post);
             } else if (user.getClass() == Offeror.class && ((Offeror) user).isRegistered() && ((Offeror) user).isEnabling()) {
-                Post post = new Post(postDTO.getId(), true, new Date(), userService.findById(postDTO.getUserId()), null, null, postTypeService.findByName(postDTO.getType()), null, null);
+                Post post = new Post(postDTO.getId(), true, new Date(), userService.findById(postDTO.getUserId()), null,null, postTypeService.findByName(postDTO.getType()), null, null);
                 List<Data> dataList = new ArrayList<>();
                 List<String> skilList = new ArrayList<>();
                 //avvaloro dataList e/o skilList
@@ -171,6 +172,16 @@ public class PostRestController {
         else {
             throw new UserNotAuthorizedException();
         }
+    }
+
+    @PostMapping(value = "/showByPosition", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public List<PostDTO> finPostByPosition(@RequestBody @Valid PositionDTO positionDTO){
+        List<Post> postList = postService.findVisibileByPosition(positionDTO.getLatitudine(), positionDTO.getLongitudine());
+        List<PostDTO> postDTOList = new ArrayList<>();
+        for(Post post: postList){
+            postDTOList.add(new PostDTO().dtoFromDomain(post));
+        }
+        return postDTOList;
     }
 
     //CONTROL

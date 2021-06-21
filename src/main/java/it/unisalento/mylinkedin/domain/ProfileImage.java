@@ -12,7 +12,6 @@ public class ProfileImage {
     @Column(length = 600)
     private String Description;
 
-    @Lob
     @Basic(fetch = FetchType.LAZY) //con FetchType.LAZY indichiamo che vogliamo caricare subito l'immagine e non all'invocazione
     @Column(nullable = false, unique = true, length = 255)
     private String profilePicturePath;

@@ -17,6 +17,7 @@ import it.unisalento.mylinkedin.iservices.IPostService;
 import it.unisalento.mylinkedin.iservices.ISkilService;
 import it.unisalento.mylinkedin.iservices.IUserService;
 import it.unisalento.mylinkedin.security.JwtProvider;
+import it.unisalento.mylinkedin.utility.URLFileDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -48,7 +49,7 @@ public class ApplicantRestController {
     JwtProvider jwtProvider;
 
     @PostMapping(value = "/saveOnPdf", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Post> savePostsOnPdf(@RequestBody  PdfDTO pdfDTO, HttpServletRequest request, HttpServletResponse response) throws PostNotFoundException, UserNotAuthorizedException, UserNotFoundException {
+    public URLFileDTO savePostsOnPdf(@RequestBody  PdfDTO pdfDTO, HttpServletRequest request, HttpServletResponse response) throws PostNotFoundException, UserNotAuthorizedException, UserNotFoundException {
         if(isApplicant(request) != 0){
             int[] postIds = pdfDTO.getIdPostArray();
             List<Post> postList = new ArrayList<>();
@@ -56,7 +57,9 @@ public class ApplicantRestController {
                 postList.add(postService.findById(postIds[i]));
             }
             String cwd = System.getProperty("user.dir");
-            String filename = cwd.substring(0,cwd.length()-10) + new Date().getTime() +".pdf";
+            String nameOfPdf = new Date().getTime() +".pdf";
+            String filename = cwd.substring(0,cwd.length()-10) + "build/libs/uploads/" + nameOfPdf;
+            URLFileDTO urlFileDTO = new URLFileDTO("/public/download/"+nameOfPdf);
             try {
                 Document document = new Document();
                 PdfWriter.getInstance(document, new FileOutputStream(filename));
@@ -74,7 +77,7 @@ public class ApplicantRestController {
             } catch (DocumentException | IOException e) {
                 System.out.println(e.getMessage());
             }
-            return new ResponseEntity<>(HttpStatus.OK);
+            return urlFileDTO;
         }
         else {
             throw new UserNotAuthorizedException();

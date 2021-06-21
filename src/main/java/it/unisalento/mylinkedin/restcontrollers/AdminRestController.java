@@ -5,6 +5,9 @@ import it.unisalento.mylinkedin.dto.*;
 import it.unisalento.mylinkedin.exceptions.*;
 import it.unisalento.mylinkedin.iservices.*;
 import it.unisalento.mylinkedin.security.JwtProvider;
+import org.apache.commons.mail.DefaultAuthenticator;
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.HtmlEmail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,11 +50,15 @@ public class AdminRestController {
     public UserDTO confirmRegistration(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
         if(isAdministrator(request)) {
             try {
-                return new ApplicantDTO().dtoFromDomain(applicantService.confirmAndEnable(id));
+                ApplicantDTO applicantDTO = new ApplicantDTO().dtoFromDomain(applicantService.confirmAndEnable(id));
+                sendEmail(applicantDTO.getEmail(), applicantDTO.getName(), "Registration confirmed! Welcome to My LinkedIn comunity :)");
+                return applicantDTO;
             } catch (UserNotFoundException e) {
             }
             try {
-                return new OfferorDTO().dtoFromDomain(offerorService.confirmAndEnable(id));
+                OfferorDTO offerorDTO = new OfferorDTO().dtoFromDomain(offerorService.confirmAndEnable(id));
+                sendEmail(offerorDTO.getEmail(), offerorDTO.getName(), "Registration confirmed! Welcome to My LinkedIn comunity :)");
+                return offerorDTO;
             } catch (UserNotFoundException e) {
             }
         }
@@ -61,13 +69,14 @@ public class AdminRestController {
     }
 
     @DeleteMapping(value = "/deleteRegistrationRequest/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public void deleteRegistration(@PathVariable int userId, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+    public void deleteRegistration(@PathVariable int userId, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException {
         if(isAdministrator(request)){
             User user = userService.findById(userId);
             //Un admin non può eliminare un utente già registrato
             if(user.getClass() == Applicant.class) {
                 if (!((Applicant) user).isRegistered()) {
                     userService.deleteUser(user.getId());
+                    sendEmail(user.getEmail(), user.getName(), "Registration not confirmed! :(");
                 } else {
                     throw new UserNotAuthorizedException();
                 }
@@ -75,6 +84,7 @@ public class AdminRestController {
             else if(user.getClass() == Offeror.class){
                 if (!((Offeror) user).isRegistered()) {
                     userService.deleteUser(user.getId());
+                    sendEmail(user.getEmail(), user.getName(), "Registration not confirmed! :(");
                 } else {
                     throw new UserNotAuthorizedException();
                 }
@@ -165,14 +175,6 @@ public class AdminRestController {
         }
     }
 
-    @GetMapping(value = "getSkilById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public SkilDTO getSkilById(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws SkilNotFoundException, UserNotAuthorizedException, UserNotFoundException{
-        if(isAdministrator(request)){
-            return new SkilDTO().dtoFromDomain(skilService.findById(id));
-        } else {
-            throw new UserNotAuthorizedException();
-        }
-    }
 
     //GESTION POST ------------------------------------------------------------------------------
     @PutMapping(value = "/hidenShowPost/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -234,4 +236,36 @@ public class AdminRestController {
         return false;
     }
 
+    //EMAIL
+    private void sendEmail(String destinationEmail, String destinationUserName, String message){
+        try {
+            HtmlEmail email = new HtmlEmail();
+            String user = "mylinkedinsoftweng@gmail.com";
+            String pwd = "Galaxys3";
+            email.setSmtpPort(587);
+            email.setAuthenticator(new DefaultAuthenticator(user, pwd));
+            email.setDebug(true);
+            email.setHostName("smtp.gmail.com");
+            email.getMailSession().getProperties().put("mail.smtps.auth", "true");
+            email.getMailSession().getProperties().put("mail.debug", "true");
+            email.getMailSession().getProperties().put("mail.smtps.port", "587");
+            email.getMailSession().getProperties().put("mail.smtps.socketFactory.port",
+                    "587");
+            email.getMailSession().getProperties().put("mail.smtps.socketFactory.class",
+                    "javax.net.ssl.SSLSocketFactory");
+            email.getMailSession().getProperties().put("mail.smtps.socketFactory.fallback",
+                    "false");
+            email.getMailSession().getProperties().put("mail.smtp.starttls.enable",
+                    "true");
+            email.addTo(destinationEmail, destinationUserName);
+            email.setFrom(user, "Me");
+            email.setSubject("My LinkedIn");
+            email.setTextMsg(message);
+            email.send();
+            System.out.println("email sent");
+        } catch (EmailException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+    }
 }

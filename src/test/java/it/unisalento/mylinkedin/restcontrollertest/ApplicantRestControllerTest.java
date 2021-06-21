@@ -84,9 +84,9 @@ public class ApplicantRestControllerTest {
         this.applicantDTO.setSkilIdArray(skilArray);
         this.applicantDTO.setEmail("test@test.com");
 
-        this.user = new User(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null);
+        this.user = new User(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, null);
         this.post = new Post(1, true, new Date(), this.user, null, null, new PostType(1, "Prova", new ArrayList<Post>(), null),null, null );
-        this.applicant = new Applicant(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, true, true, null);
+        this.applicant = new Applicant(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, null, true, true, null);
         this.skil = new Skil(0, "test", null ,null);
 
         when(jwtProvider.decodeJwt(this.jwt)).thenReturn(JWT.require(Algorithm.HMAC256(secret)).build().verify(jwt.replace(prefix, "").trim()));
