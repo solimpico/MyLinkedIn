@@ -24,7 +24,7 @@ public class AdminServiceImpl implements IAdminService {
         try{
             return administratorRepository.save(new Administrator(user.getId(), user.getName(), user.getSurname(),
                     user.getBirthday(), user.getAge(), user.getEmail(), user.getPassword(), user.getProfileImage(),
-                    user.getNotificationList(), user.getMessageList(), user.getPostList(), user.getCommentList()));
+                    user.getNotificationList(), user.getMessageList(), user.getPostList(), user.getCommentList(), user.getSnsList()));
 
         }
         catch (Exception e){

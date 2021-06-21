@@ -12,21 +12,17 @@ public class Notification {
     @Column(nullable = false)
     private String message;
 
-    @Column(nullable = false)
-    private boolean view;
-
     @ManyToOne(optional = false) //non può esistere una notifica senza uno user proprietario
     private User user;
 
-    @OneToOne
+    @ManyToOne(optional = false)
     private Post post;
 
     public Notification(){}
 
-    public Notification(int id, String message, boolean view, User user, Post post) {
+    public Notification(int id, String message, User user, Post post) {
         this.id = id;
         this.message = message;
-        this.view = view;
         this.user = user;
         this.post = post;
     }
@@ -45,14 +41,6 @@ public class Notification {
 
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    public boolean isView() {
-        return view;
-    }
-
-    public void setView(boolean view) {
-        this.view = view;
     }
 
     public User getUser() {

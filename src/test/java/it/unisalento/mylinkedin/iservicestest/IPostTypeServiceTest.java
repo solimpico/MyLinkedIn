@@ -44,21 +44,19 @@ public class IPostTypeServiceTest {
 
         this.postType = new PostType();
         this.postType.setId(1);
-        this.postType.setType("Offerta");
+        this.postType.setType("Job Offer");
         this.postType.setPostList(null);
         this.postType.setRequiredFieldPostTypesList(null);
 
         this.frontendPostType = new PostType();
-        this.postType.setType("Offerta");
+        this.postType.setType("Job Offer");
         this.frontendPostType.setPostList(null);
         this.frontendPostType.setRequiredFieldPostTypesList(null);
 
         try {
             when(postTypeServiceMock.addPostType(frontendPostType, requiredFieldList)).thenReturn(frontendPostType);
         }
-        catch (AddPostTypeException e) {
-            e.printStackTrace();
-        }
+        catch (AddPostTypeException e) {}
     }
 
     @Test
@@ -67,9 +65,7 @@ public class IPostTypeServiceTest {
         try{
             idPT = postTypeServiceMock.addPostType(frontendPostType, requiredFieldList).getId();
         }
-        catch (AddPostTypeException e) {
-            e.printStackTrace();
-        }
+        catch (AddPostTypeException e) {}
         assertThat(idPT).isEqualTo(0);
     }
 
@@ -90,7 +86,6 @@ public class IPostTypeServiceTest {
     void findByNameTest(){
         assertThat(postTypeService.findByName(postType.getType())).isNotNull();
         assertThat(postTypeService.findByName(postType.getType()).getType()).isEqualTo(postType.getType());
-        assertThat(postTypeService.findByName(postType.getType()).getId()).isEqualTo(postType.getId());
     }
 
     @Test

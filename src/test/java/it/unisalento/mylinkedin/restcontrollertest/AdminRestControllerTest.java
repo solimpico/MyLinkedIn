@@ -78,9 +78,9 @@ public class AdminRestControllerTest {
     void initTestEnv(){
         this.jwt = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBnbWFpbC5jb20iLCJydW9sbyI6Iml0LnVuaXNhbGVudG8ubXlsaW5rZWRpbi5kb21haW4uQWRtaW5pc3RyYXRvciIsImlzcyI6Imlzc3VlciIsImV4cCI6MTYyNDg5MTUxOSwiaWF0IjoxNjIyMjEzMTE4fQ._mUPCHhYla4dQZDyzWuFiXWuGNux3_RuxZzAOvfowNA";
 
-        this.user = new User(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null);
-        this.applicant = new Applicant(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, true, true, null);
-        this.offeror = new Offeror(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, true, true, null);
+        this.user = new User(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, null);
+        this.applicant = new Applicant(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, null, true, true, null);
+        this.offeror = new Offeror(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, null, true, true, null);
 
         this.offerorList = new ArrayList<>();
         this.offerorList.add(this.offeror);
@@ -118,13 +118,6 @@ public class AdminRestControllerTest {
         when(postServiceMock.findAll()).thenReturn(new ArrayList<Post>());
         when(applicantServiceMock.save(this.applicant)).thenReturn(this.applicant);
         when(offerorServiceMock.save(this.offeror)).thenReturn(this.offeror);
-    }
-
-    @Test
-    void getSkilByIdTest(){
-        try{
-            mockMvc.perform(get("admin/getSkilById/"+this.skil.getId())).andExpect(status().isOk());
-        } catch (Exception e){}
     }
 
     @Test

@@ -90,11 +90,11 @@ public class PostRestControllerTest {
         this.commentDTO.setThread(0);
         this.commentDTO.setAuthorId(1);
         this.commentDTO.setCommentsOfThread(null);
-        this.applicant = new Applicant(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, true, true, null);
-        this.offeror = new Offeror(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, true, true, null);
+        this.applicant = new Applicant(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, null, true, true, null);
+        this.offeror = new Offeror(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, null, true, true, null);
         List<Comment> commentList = new ArrayList<>();
         commentList.add(this.comment);
-        this.user = new User(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, commentList);
+        this.user = new User(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, commentList, null);
         this.post = new Post(1, true, new Date(), this.user, null, null, new PostType(1, "Prova", new ArrayList<Post>(), null),null, null );
         this.comment = new Comment(1, this.user, "test", new Date(), null, null, this.post);
 

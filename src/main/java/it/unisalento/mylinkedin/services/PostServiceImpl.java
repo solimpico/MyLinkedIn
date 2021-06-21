@@ -27,6 +27,8 @@ public class PostServiceImpl implements IPostService {
     SkilPostRepository skilPostRepository;
     @Autowired
     OfferorRepository offerorRepository;
+    @Autowired
+    PositionRepository positionRepository;
 
     @Override
     @Transactional(rollbackOn = PostException.class)
@@ -131,6 +133,48 @@ public class PostServiceImpl implements IPostService {
             post.setVisible(true);
         }
         return postRepository.save(post);
+    }
+
+    @Override
+    @Transactional
+    public List<Post> findVisibileByPosition(double latitudine, double longitudine){
+        List<Post> postList = postRepository.findVisible();
+        List<Post> orderedPost = orderPostByPosition(latitudine, longitudine, postList);
+        return orderedPost;
+    }
+
+    private List<Post> orderPostByPosition(double latitudine, double longitudine, List<Post> postList){
+        for(int j=0; j<postList.size()-1; j++){
+            Position one = new Position();
+            Position two = new Position();
+            Post temp = new Post();
+            int posMin = j;
+            for(Data data: postList.get(posMin).getDataList()) {
+                if (data.getField().equalsIgnoreCase("Luogo") || data.getField().equalsIgnoreCase("Location")) {
+                    one = positionRepository.findCoordinateByName(data.getData());
+                }
+            }
+            for(int i=j+1; i<postList.size()-1; i++){
+                for(Data data1: postList.get(i).getDataList()) {
+                    if (data1.getField().equalsIgnoreCase("Luogo") || data1.getField().equalsIgnoreCase("Location")) {
+                        two = positionRepository.findCoordinateByName(data1.getData());
+                    }
+                }
+                if(computeDistance(one.getLatitudine(), one.getLongitudine(), latitudine, longitudine) > computeDistance(two.getLatitudine(), two.getLongitudine(), latitudine, longitudine)){
+                    posMin = postList.indexOf(postList.get(i));
+                }
+                if(posMin != j){
+                    temp = postList.get(j);
+                    postList.set(j, postList.get(posMin));
+                    postList.set(posMin, temp);
+                }
+            }
+        }
+        return postList;
+    }
+
+    private double computeDistance(double lat1, double long1, double lat2, double long2){
+        return Math.sqrt(Math.pow(lat2-lat1, 2) + Math.pow(long2-long1, 2));
     }
 }
 

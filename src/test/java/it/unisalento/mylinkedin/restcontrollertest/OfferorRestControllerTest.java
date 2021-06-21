@@ -64,7 +64,7 @@ public class OfferorRestControllerTest {
         this.companyDTO.setIdOfferor(idOfferors);
         this.companyDTO.setDescription("test");
         this.company = new Company(0, "test", "test", "test", null);
-        this.offeror = new Offeror(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, true, true, this.company);
+        this.offeror = new Offeror(1, "Prova", "Prova", "10/10/10", 20, "prova@prova.it", "prova", null, null, null, null, null, null, true, true, this.company);
 
 
         when(jwtProvider.decodeJwt(this.jwt)).thenReturn(JWT.require(Algorithm.HMAC256(secret)).build().verify(jwt.replace(prefix, "").trim()));

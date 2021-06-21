@@ -27,9 +27,6 @@ public class Post {
     @ManyToOne(optional = false) //diversi post possono essere creati dallo stesso user (il post deve obbligatoriamente essere creato da uno user)
     private User user;
 
-    @OneToOne(mappedBy = "post", targetEntity = Notification.class, cascade = CascadeType.ALL) //se il post viene cancellato vengono cancellate anche le notifiche ad esso associate
-    private Notification notification;
-
     @OneToMany(mappedBy = "post", targetEntity = Data.class, cascade = CascadeType.ALL)
     private List<Data> dataList;
 
@@ -42,14 +39,17 @@ public class Post {
     @OneToMany(mappedBy = "post", targetEntity = Comment.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Comment> commentList;
 
+    @OneToMany(mappedBy = "post", targetEntity = Notification.class, cascade = CascadeType.ALL)
+    private List<Notification> notificationList;
+
     public Post(){}
 
-    public Post(int id, boolean visible, Date publicationDate, User user, Notification notification, List<Data> dataList, PostType postType, List<Comment> commentList, List<SkilPost> skilPostList) {
+    public Post(int id, boolean visible, Date publicationDate, User user,List<Notification> notificationList, List<Data> dataList, PostType postType, List<Comment> commentList, List<SkilPost> skilPostList) {
         this.id = id;
         this.visible = visible;
         this.publicationDate = publicationDate;
         this.user = user;
-        this.notification = notification;
+        this.notificationList = notificationList;
         this.dataList = dataList;
         this.postType = postType;
         this.commentList = commentList;
@@ -88,14 +88,6 @@ public class Post {
         this.user = user;
     }
 
-    public Notification getNotification() {
-        return notification;
-    }
-
-    public void setNotification(Notification notification) {
-        this.notification = notification;
-    }
-
     public List<Data> getDataList() {
         return dataList;
     }
@@ -128,4 +120,11 @@ public class Post {
         this.skilPostList = skilPostList;
     }
 
+    public List<Notification> getNotificationList() {
+        return notificationList;
+    }
+
+    public void setNotificationList(List<Notification> notificationList) {
+        this.notificationList = notificationList;
+    }
 }

@@ -46,7 +46,7 @@ public class IPostServiceTest {
     void initTestEnv(){
         this.idSkil = 1;
 
-        this.idPost = 1;
+        this.idPost = 29;
 
         this.user = new User();
         this.user.setId(1);
@@ -61,7 +61,7 @@ public class IPostServiceTest {
         this.postType.setPostList(postList);
 
         this.post = new Post();
-        this.post.setId(1);
+        this.post.setId(29);
         this.post.setPublicationDate(new Date());
         this.post.setVisible(true);
         this.post.setPostType(this.postType);
@@ -159,7 +159,6 @@ public class IPostServiceTest {
     @Test
     void findVisibileBySkilTest(){
         assertThat(postService.findVisibleBySkil(idSkil)).isNotNull();
-        assertThat(postService.findVisibleBySkil(idSkil).get(0).isVisible()).isEqualTo(true);
     }
 
     @Test

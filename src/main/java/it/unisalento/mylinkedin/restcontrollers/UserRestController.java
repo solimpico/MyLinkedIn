@@ -5,18 +5,27 @@ import it.unisalento.mylinkedin.dto.*;
 import it.unisalento.mylinkedin.exceptions.*;
 import it.unisalento.mylinkedin.iservices.*;
 import it.unisalento.mylinkedin.security.JwtProvider;
+import it.unisalento.mylinkedin.utility.Runner;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static net.bytebuddy.matcher.ElementMatchers.is;
 
 @RestController
 public class UserRestController {
@@ -38,51 +47,59 @@ public class UserRestController {
     @Autowired
     IPostTypeService postTypeService;
     @Autowired
+    INotificationService notificationService;
+    @Autowired
+    ISnsService snsService;
+    @Autowired
     JwtProvider jwtProvider;
 
 
     @PostMapping(value="/public/login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<LoginTokenDTO> authenticate(@RequestBody LoginInputDTO body) throws UserNotFoundException{
-        User user = userService.findByEmail(body.getEmail());
+        User user = new User();
         LoginTokenDTO tokenDTO = new LoginTokenDTO();
-        if(user.getClass().equals(Applicant.class)) {
+        try {
+            user = userService.findByEmail(body.getEmail());
+        } catch (UserNotFoundException e){
+            return ResponseEntity.ok(tokenDTO);
+        }
+        if (user.getClass().equals(Applicant.class)) {
             if (((Applicant) user).isRegistered() == true && ((Applicant) user).isEnabling() == true
                     && user != null && user.getEmail().equals(body.getEmail())
                     && user.getPassword().equals(body.getPassword())) {
-                    //param role
-                    String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
-                    tokenDTO.setToken(jwt);
-                    tokenDTO.setUserId(user.getId());
-                    return ResponseEntity.ok(tokenDTO);
+                //param role
+                String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
+                tokenDTO.setToken(jwt);
+                tokenDTO.setUserId(user.getId());
+                return ResponseEntity.ok(tokenDTO);
             }
-        }
-        else if(user.getClass().equals(Offeror.class)) {
+        } else if (user.getClass().equals(Offeror.class)) {
             if (((Offeror) user).isRegistered() == true && ((Offeror) user).isEnabling() == true
                     && user != null && user.getEmail().equals(body.getEmail())
                     && user.getPassword().equals(body.getPassword())) {
-                    //param role
-                    String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
-                    tokenDTO.setToken(jwt);
-                    tokenDTO.setUserId(user.getId());
-                    return ResponseEntity.ok(tokenDTO);
+                //param role
+                String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
+                tokenDTO.setToken(jwt);
+                tokenDTO.setUserId(user.getId());
+                return ResponseEntity.ok(tokenDTO);
             }
-        }
-            else if(user.getClass().equals(Administrator.class)
+        } else if (user.getClass().equals(Administrator.class)
                 && user != null && user.getEmail().equals(body.getEmail())
-                && user.getPassword().equals(body.getPassword())){
-                    //param role
-                    String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
-                    tokenDTO.setToken(jwt);
-                    tokenDTO.setUserId(user.getId());
-                    return ResponseEntity.ok(tokenDTO);
-        }
+                && user.getPassword().equals(body.getPassword())) {
+            //param role
+            String jwt = jwtProvider.createJwt(user.getEmail(), user.getClass().getName());
+            tokenDTO.setToken(jwt);
+            tokenDTO.setUserId(user.getId());
             return ResponseEntity.ok(tokenDTO);
+        }
+        return ResponseEntity.ok(tokenDTO);
+
     }
 
 
     @PostMapping(value = "/public/registrationRequest", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public UserDTO registrationRequest(@RequestBody UserDTO userDTO) throws SavingUserException, SkilNotFoundException {
-        User user = new User(0, userDTO.getName(), userDTO.getSurname(), userDTO.getBirthday(), userDTO.getAge(), userDTO.getEmail(), userDTO.getPassword(), null, null, null, null, null);
+        User user = new User(0, userDTO.getName(), userDTO.getSurname(), userDTO.getBirthday(), userDTO.getAge(), userDTO.getEmail(), userDTO.getPassword(), null, null, null, null, null, null);
         if(userDTO.getRole().equalsIgnoreCase("offeror")){
             //salva la richiesta di un offeror
             return new OfferorDTO().dtoFromDomain(offerorService.saveRegistrationtRequestOfferor(user));
@@ -281,6 +298,116 @@ public class UserRestController {
             throw new UserNotAuthorizedException();
         }
     }
+
+    @GetMapping(value = "getAllNotification", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<NotificationDTO> getAllNotification(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            List<Notification> notifications = notificationService.getNotificationsByUserId(idUser);
+            List<NotificationDTO> notificationDTOS = new ArrayList<>();
+            for (Notification not: notifications){
+                notificationDTOS.add(new NotificationDTO().dtoFromDomain(not));
+            }
+            return notificationDTOS;
+        }
+        else {
+            throw new UserNotAuthorizedException();
+        }
+    }
+
+    @DeleteMapping(value = "deleteNotification/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Notification> deleteNotification(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        int idUser = isRegistered(request);
+        if(idUser != 0) {
+            notificationService.deleteNotification(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        else {
+            throw new UserNotAuthorizedException();
+        }
+    }
+
+    @DeleteMapping(value = "deleteAllnotificationOfUser", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Notification> deleteAllNotification(HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            notificationService.deleteAllNotificationByUserId(idUser);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        else {
+            throw new UserNotAuthorizedException();
+        }
+    }
+
+    @PostMapping(value = "addNotification", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public NotificationDTO addNotification(@RequestBody @Valid NotificationDTO notificationDTO,HttpServletRequest request, HttpServletResponse response) throws UserNotFoundException, UserNotAuthorizedException, PostNotFoundException{
+        int idUser = isRegistered(request);
+        if(idUser != 0){
+            User user = userService.findById(notificationDTO.getUserDTO().getId());
+            Post post = new Post();
+            if(notificationDTO.getPostDTO() != null){
+                post = postService.findById(notificationDTO.getPostDTO().getId());
+            }
+            Notification notification = new Notification(0, notificationDTO.getMessage(), user, post);
+            List<Sns> snsList = snsService.getByUserId(idUser);
+            if(snsList != null) {
+                if (snsList.get(0).getUser().getClass() != Offeror.class) {
+                    for (Sns sns : snsList) {
+                        //Costruisco il DTO
+                        PushDTO pushDTO = new PushDTO("My LinkedIn", notification.getMessage(), sns.getArn());
+                        //Invio richiesta ad API GW (=> invio notifica al client)
+                        RestTemplate restTemplate = new RestTemplate();
+
+                        HttpEntity<PushDTO> request1 = new HttpEntity<>(pushDTO);
+                        restTemplate.postForObject("https://wg2bo6r10i.execute-api.us-east-1.amazonaws.com/sns/notifications/", request1, String.class);
+                    }
+                }
+                else {
+                    //Gestione Bulk notification per offeror
+                    Thread t = new Thread(new Runner(snsList, notification));
+                    t.start();
+                }
+            }
+                return new NotificationDTO().dtoFromDomain(notificationService.saveNotification(notification));
+        }
+        else {throw new UserNotAuthorizedException();}
+    }
+
+
+    @GetMapping(value = "getSkilById/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public SkilDTO getSkilById(@PathVariable int id, HttpServletRequest request, HttpServletResponse response) throws SkilNotFoundException, UserNotAuthorizedException, UserNotFoundException{
+        if(isRegistered(request)!= 0){
+            return new SkilDTO().dtoFromDomain(skilService.findById(id));
+        } else {
+            throw new UserNotAuthorizedException();
+        }
+    }
+
+    @PostMapping(value="/saveFirebaseToken", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void saveFireToken(@RequestBody FirebaseTokenDTO firebaseTokenDTO, HttpServletRequest request1, HttpServletResponse response1) throws UserNotFoundException {
+        //To do
+        // mandare token a sns
+        System.out.println("\n\nSAVEFIREBASETOKEN API\n\n");
+
+        RestTemplate restTemplate = new RestTemplate();
+        //creo Json
+        String jsonString = "{\"token\":\""+firebaseTokenDTO.getFirebaseToken()+"\"}";
+        HttpEntity<String> request = new HttpEntity<>(jsonString);
+        //attendere risposta da API GW
+        SnsDTO snsDTO = restTemplate.postForObject("https://wg2bo6r10i.execute-api.us-east-1.amazonaws.com/sns/token/", request, SnsDTO.class);
+        if(snsService.findByArn(snsDTO.getArn()) == null) {
+            System.out.println("SNSARN: " + snsDTO.getArn());
+            User user = userService.findById(isRegistered(request1));
+            Sns sns = new Sns();
+            sns.setUser(user);
+            sns.setArn(snsDTO.getArn());
+            //salvare in db endpointARN e relativo userId.
+            snsService.saveARN(sns);
+        }
+        else
+            System.out.println("ARN già esistente");
+    }
+
 
     //CONTROL
     private int isRegistered(HttpServletRequest request) throws UserNotFoundException{
