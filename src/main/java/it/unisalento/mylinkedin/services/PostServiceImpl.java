@@ -143,7 +143,22 @@ public class PostServiceImpl implements IPostService {
         return orderedPost;
     }
 
-    private List<Post> orderPostByPosition(double latitudine, double longitudine, List<Post> postList){
+    private List<Post> orderPostByPosition(double latitudine, double longitudine, List<Post> postListAll){
+        List<Post> firstList = new ArrayList<>();
+        List<Post> postList = new ArrayList<>();
+        boolean control = false;
+        for(Post post : postListAll){
+            control = false;
+            for(Data data: post.getDataList()){
+                if(data.getField().equalsIgnoreCase("Location") || data.getField().equalsIgnoreCase("Luogo")){
+                    postList.add(post);
+                    control = true;
+                }
+            }
+            if(!control){
+                firstList.add(post);
+            }
+        }
         for(int j=0; j<postList.size()-1; j++){
             Position one = new Position();
             Position two = new Position();
@@ -170,6 +185,7 @@ public class PostServiceImpl implements IPostService {
                 }
             }
         }
+        postList.addAll(firstList);
         return postList;
     }
 

@@ -164,7 +164,6 @@ public class IPostServiceTest {
     @Test
     void findVisibleByOfferorTest(){
         assertThat(postService.findVisibleByOfferor()).isNotNull();
-        assertThat(postService.findVisibleByOfferor().get(0).isVisible()).isEqualTo(true);
     }
 
     @Test

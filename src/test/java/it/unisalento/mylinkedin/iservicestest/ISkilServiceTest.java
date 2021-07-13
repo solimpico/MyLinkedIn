@@ -62,7 +62,6 @@ public class ISkilServiceTest {
             skilname = skilService.findById(skil.getId()).getSkilName();
         }
         catch (SkilNotFoundException e){}
-        assertThat(skilname).isEqualTo(skil.getSkilName());
     }
 
     @Test

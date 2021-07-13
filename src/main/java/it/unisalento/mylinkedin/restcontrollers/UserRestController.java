@@ -395,7 +395,8 @@ public class UserRestController {
         HttpEntity<String> request = new HttpEntity<>(jsonString);
         //attendere risposta da API GW
         SnsDTO snsDTO = restTemplate.postForObject("https://wg2bo6r10i.execute-api.us-east-1.amazonaws.com/sns/token/", request, SnsDTO.class);
-        if(snsService.findByArn(snsDTO.getArn()) == null) {
+        Sns snsCheck = snsService.findByArn(snsDTO.getArn());
+        if(snsCheck == null) {
             System.out.println("SNSARN: " + snsDTO.getArn());
             User user = userService.findById(isRegistered(request1));
             Sns sns = new Sns();
@@ -404,8 +405,18 @@ public class UserRestController {
             //salvare in db endpointARN e relativo userId.
             snsService.saveARN(sns);
         }
-        else
-            System.out.println("ARN già esistente");
+        else {
+            System.out.println("\n\nARN già esistente, controllo utente\n\n");
+            if(snsCheck.getUser().getId() == isRegistered(request1))
+                System.out.println("\nAssociazione ARN sns - utente già esistente\n");
+            else{
+                System.out.println("Updating ARN sns - user");
+                snsCheck.setUser(userService.findById(isRegistered(request1)));
+                snsService.saveARN(snsCheck);
+                System.out.println("\nSuccess");
+            }
+
+        }
     }
 
 
